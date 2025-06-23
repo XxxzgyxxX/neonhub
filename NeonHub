@@ -1,0 +1,225 @@
+--[[
+    🚀 Neon Hub Premium | Blox Fruits
+    👑 Criado por: XxxzgyxxX
+    🔗 Discord: discord.gg/neonhub
+    📌 Versão: 3.0 (Estilo Redz Hub)
+]]
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/2dgeneralspam1/Utilities-and-Tricks/main/Kavo%20UI%20Library%20Recreation.lua"))()
+
+-- Configuração do Tema (Azul Marinho Neon)
+local Theme = {
+    Background = Color3.fromRGB(5, 15, 30),
+    Header = Color3.fromRGB(0, 50, 100),
+    TextColor = Color3.fromRGB(255, 255, 255),
+    SubTextColor = Color3.fromRGB(180, 180, 180),
+    ElementColor = Color3.fromRGB(0, 80, 160),
+    GlowColor = Color3.fromRGB(0, 150, 255)
+}
+
+-- Cria a Janela Principal (Estilo Redz Hub)
+local Window = CreateLib("NEON HUB | BLOX FRUITS", Theme)
+
+-- Serviços
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local VirtualInput = game:GetService("VirtualInputManager")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+
+-- Variáveis
+local AutoFarm = false
+local AutoClick = false
+local AutoBoss = false
+local AutoKen = false
+local AutoHaki = false
+local Noclip = false
+local InfJump = false
+local ToggleUIKey = Enum.KeyCode.RightControl
+local IsUIOpen = true
+local CurrentTarget = nil
+
+-- Logo Personalizada (Estilo Delta)
+local Logo = Instance.new("ImageLabel")
+Logo.Name = "NeonHubLogo"
+Logo.Parent = CoreGui
+Logo.Image = "rbxassetid://1234567890" -- Substitua pelo ID da sua imagem
+Logo.Size = UDim2.new(0, 200, 0, 50)
+Logo.Position = UDim2.new(0.5, -100, 0, 10)
+Logo.AnchorPoint = Vector2.new(0.5, 0)
+Logo.BackgroundTransparency = 1
+Logo.Visible = true
+
+-- Função para Mover a UI
+local Drag = Instance.new("Frame")
+Drag.Name = "Drag"
+Drag.Parent = Window.Main
+Drag.BackgroundTransparency = 1
+Drag.Size = UDim2.new(1, 0, 0, 30)
+Drag.Active = true
+Drag.Draggable = true
+
+-- Tabs (Estilo Redz Hub)
+local MainTab = Window:NewTab("🏠 Principal")
+local CombatTab = Window:NewTab("⚔️ Combate")
+local FarmTab = Window:NewTab("🌾 Farm")
+local TeleportTab = Window:NewTab("📍 Teleportes")
+local PlayerTab = Window:NewTab("👤 Jogador")
+local SettingsTab = Window:NewTab("⚙️ Configurações")
+
+-- Sections
+local MainSection = MainTab:NewSection("🔧 Funções Principais")
+local CombatSection = CombatTab:NewSection("🎯 Habilidades")
+local AutoFarmSection = FarmTab:NewSection("🤖 Farm Automático")
+local BossSection = FarmTab:NewSection("👑 Bosses")
+local IslandSection = TeleportTab:NewSection("🏝️ Ilhas")
+local PlayerControls = PlayerTab:NewSection("🎮 Controles")
+local UISettings = SettingsTab:NewSection("🎨 UI Config")
+
+-- Funções Principais
+function GetClosestEnemy()
+    local Character = LocalPlayer.Character
+    if not Character then return nil end
+    
+    local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+    if not HumanoidRootPart then return nil end
+    
+    local ClosestEnemy = nil
+    local ShortestDistance = math.huge
+    
+    for _, Enemy in pairs(Workspace.Enemies:GetChildren()) do
+        if Enemy:FindFirstChild("Humanoid") and Enemy.Humanoid.Health > 0 and Enemy:FindFirstChild("HumanoidRootPart") then
+            local Distance = (HumanoidRootPart.Position - Enemy.HumanoidRootPart.Position).Magnitude
+            if Distance < ShortestDistance then
+                ShortestDistance = Distance
+                ClosestEnemy = Enemy
+            end
+        end
+    end
+    
+    return ClosestEnemy
+end
+
+function AttackEnemy(Enemy)
+    if not Enemy then return end
+    
+    local Character = LocalPlayer.Character
+    if not Character then return end
+    
+    local Humanoid = Character:FindFirstChild("Humanoid")
+    if not Humanoid or Humanoid.Health <= 0 then return end
+    
+    -- Teleporta até o inimigo
+    TweenService:Create(
+        Character.HumanoidRootPart,
+        TweenInfo.new(0.5, Enum.EasingStyle.Linear),
+        {CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)}
+    ):Play()
+    
+    -- Auto Click
+    if AutoClick then
+        VirtualInput:SendKeyEvent(true, "X", false, game)
+        task.wait(0.1)
+        VirtualInput:SendKeyEvent(false, "X", false, game)
+    end
+end
+
+function AutoFarmLoop()
+    while AutoFarm do
+        local Enemy = GetClosestEnemy()
+        if Enemy then
+            CurrentTarget = Enemy
+            AttackEnemy(Enemy)
+        end
+        task.wait(0.5)
+    end
+end
+
+function AutoBossLoop()
+    while AutoBoss do
+        for _, BossName in pairs({"Darkbeard", "Dough King", "Cursed Captain"}) do
+            local Boss = Workspace.Enemies:FindFirstChild(BossName)
+            if Boss and Boss:FindFirstChild("Humanoid") and Boss.Humanoid.Health > 0 then
+                CurrentTarget = Boss
+                AttackEnemy(Boss)
+                break
+            end
+        end
+        task.wait(1)
+    end
+end
+
+-- UI Toggle (Estilo Delta)
+function ToggleUI()
+    IsUIOpen = not IsUIOpen
+    Window.Main.Visible = IsUIOpen
+    Logo.Visible = not IsUIOpen
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(Input)
+    if Input.KeyCode == ToggleUIKey then
+        ToggleUI()
+    end
+end)
+
+-- Elementos da UI
+MainSection:NewToggle("✅ Auto Farm", "Farm automático de inimigos", function(State)
+    AutoFarm = State
+    if State then
+        coroutine.wrap(AutoFarmLoop)()
+    end
+end)
+
+MainSection:NewToggle("🖱️ Auto Click", "Ativa clique automático", function(State)
+    AutoClick = State
+end)
+
+BossSection:NewToggle("👑 Farm Bosses", "Farm automático de bosses", function(State)
+    AutoBoss = State
+    if State then
+        coroutine.wrap(AutoBossLoop)()
+    end
+end)
+
+CombatSection:NewToggle("🌀 Auto Ken", "Ativa Ken automaticamente", function(State)
+    AutoKen = State
+    while AutoKen do
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ActivateKen")
+        task.wait(5)
+    end
+end)
+
+PlayerControls:NewSlider("🚶 Velocidade", "Ajusta sua velocidade", 500, 16, function(Value)
+    LocalPlayer.Character.Humanoid.WalkSpeed = Value
+end)
+
+PlayerControls:NewToggle("✈️ NoClip", "Ativa/Desativa NoClip", function(State)
+    Noclip = State
+end)
+
+-- Configurações da UI
+UISettings:NewKeybind("🔘 Toggle UI", "Abre/Fecha a Interface", Enum.KeyCode.RightControl, function()
+    ToggleUI()
+end)
+
+UISettings:NewButton("❌ Fechar Hub", "Remove a UI completamente", function()
+    Window:Destroy()
+    Logo:Destroy()
+end)
+
+-- Conexões
+RunService.Stepped:Connect(function()
+    if Noclip and LocalPlayer.Character then
+        for _, Part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if Part:IsA("BasePart") then
+                Part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- Inicialização
+ToggleUI() -- Inicia fechado (só mostra a logo)
+Library:Notify("NEON HUB CARREGADO! Pressione RightControl para abrir.", 5)
