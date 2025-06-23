@@ -1,567 +1,714 @@
---[[
-    NEON HUB - Blox Fruits Script
-    Created by XxxzgyxxX
-    Version: 1.5
-    Features: Auto Farm, Auto Dungeon, Auto Sea Events, Player ESP, and more!
-]]
-
-local NEON_HUB = {
-    Version = "1.5",
-    Creator = "XxxzgyxxX",
-    LastUpdate = "06/2023"
-}
-
--- Services
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
-local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
-
--- Player Variables
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-
--- Game Variables
-local Islands = Workspace:WaitForChild("Map"):WaitForChild("Islands"):GetChildren()
-local NPCs = Workspace:WaitForChild("NPCs")
-local Fruits = Workspace:WaitForChild("Fruits")
-local Boats = Workspace:WaitForChild("Boats")
-
--- Remote Functions
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
-local CombatRemote = Remotes:WaitForChild("Combat")
-local RequestEntrance = Remotes:WaitForChild("RequestEntrance")
-local BuyItemRemote = Remotes:WaitForChild("BuyItem")
-
--- GUI Library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("NEON HUB - Blox Fruits", "Ocean")
-
--- Tabs
-local MainTab = Window:NewTab("Main")
-local AutoFarmTab = Window:NewTab("Auto Farm")
-local PlayerTab = Window:NewTab("Player")
-local TeleportTab = Window:NewTab("Teleport")
-local MiscTab = Window:NewTab("Misc")
-
--- Sections
-local MainSection = MainTab:NewSection("Main Features")
-local AutoFarmSection = AutoFarmTab:NewSection("Auto Farm Options")
-local PlayerSection = PlayerTab:NewSection("Player Modifications")
-local TeleportSection = TeleportTab:NewSection("Teleport Options")
-local MiscSection = MiscTab:NewSection("Miscellaneous")
-
--- Variables
-local AutoFarmEnabled = false
-local AutoDungeonEnabled = false
-local AutoSeaEventsEnabled = false
-local AutoNewWorldEnabled = false
-local AutoThirdSeaEnabled = false
-local AutoBossEnabled = false
-local AutoEliteHunterEnabled = false
-local AutoRaidEnabled = false
-local AutoBuyEnabled = false
-local AutoSellEnabled = false
-local AutoCollectChestsEnabled = false
-local AutoCollectFruitsEnabled = false
-local AutoKenEnabled = false
-local AutoHakiEnabled = false
-local AutoBusoEnabled = false
-local AutoObservationEnabled = false
-local AutoSoruEnabled = false
-local AutoGeppoEnabled = false
-local AutoFarmLevel = false
-local AutoFarmBeli = false
-local AutoFarmFragments = false
-local SelectedWeapon = ""
-local SelectedIsland = ""
-local SelectedBoss = ""
-local SelectedFruit = ""
-local SelectedDungeon = ""
-local SelectedRaid = ""
-local WalkSpeed = 16
-local JumpPower = 50
-local FarmDistance = 20
-local SelectedQuest = ""
-
--- Player ESP
-local ESPEnabled = false
-local ESPBoxes = {}
-local ESPHighlights = {}
-
--- Functions
-function GetClosestNPC()
-    local closestNPC = nil
-    local closestDistance = math.huge
-    
-    for _, npc in pairs(NPCs:GetChildren()) do
-        if npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") and npc.Humanoid.Health > 0 then
-            local distance = (HumanoidRootPart.Position - npc.HumanoidRootPart.Position).Magnitude
-            if distance < closestDistance then
-                closestDistance = distance
-                closestNPC = npc
-            end
-        end
-    end
-    
-    return closestNPC
-end
-
-function GetClosestPlayer()
-    local closestPlayer = nil
-    local closestDistance = math.huge
-    
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local distance = (HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-            if distance < closestDistance then
-                closestDistance = distance
-                closestPlayer = player
-            end
-        end
-    end
-    
-    return closestPlayer
-end
-
-function GetClosestFruit()
-    local closestFruit = nil
-    local closestDistance = math.huge
-    
-    for _, fruit in pairs(Fruits:GetChildren()) do
-        if fruit:FindFirstChild("Handle") then
-            local distance = (HumanoidRootPart.Position - fruit.Handle.Position).Magnitude
-            if distance < closestDistance then
-                closestDistance = distance
-                closestFruit = fruit
-            end
-        end
-    end
-    
-    return closestFruit
-end
-
-function AttackNPC(npc)
-    if npc and npc:FindFirstChild("HumanoidRootPart") then
-        HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, FarmDistance)
-        CombatRemote:InvokeServer("MousePos", npc.HumanoidRootPart.Position)
-        CombatRemote:InvokeServer("Damage", npc.HumanoidRootPart, npc.HumanoidRootPart.Position)
-    end
-end
-
-function TeleportTo(position)
-    if HumanoidRootPart then
-        HumanoidRootPart.CFrame = position
-    end
-end
-
-function ToggleESP()
-    ESPEnabled = not ESPEnabled
-    
-    if ESPEnabled then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= Player and player.Character then
-                local highlight = Instance.new("Highlight")
-                highlight.Parent = player.Character
-                highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                ESPHighlights[player] = highlight
-            end
-        end
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON HUB - Blox Fruits</title>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --secondary-color: #0097e6;
+            --background-color: #1e272e;
+            --card-color: #2f3640;
+            --text-color: #f5f6fa;
+            --danger-color: #e84118;
+            --success-color: #4cd137;
+        }
         
-        Players.PlayerAdded:Connect(function(player)
-            player.CharacterAdded:Connect(function(character)
-                if ESPEnabled then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Parent = character
-                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    ESPHighlights[player] = highlight
-                end
-            end)
-        end)
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         
-        Players.PlayerRemoving:Connect(function(player)
-            if ESPHighlights[player] then
-                ESPHighlights[player]:Destroy()
-                ESPHighlights[player] = nil
-            end
-        end)
-    else
-        for _, highlight in pairs(ESPHighlights) do
-            highlight:Destroy()
-        end
-        ESPHighlights = {}
-    end
-end
-
-function AutoFarm()
-    while AutoFarmEnabled do
-        local closestNPC = GetClosestNPC()
-        if closestNPC then
-            AttackNPC(closestNPC)
-        end
-        wait(0.1)
-    end
-end
-
-function AutoFarmLevels()
-    while AutoFarmLevel do
-        local closestNPC = GetClosestNPC()
-        if closestNPC then
-            AttackNPC(closestNPC)
-        end
-        wait(0.1)
-    end
-end
-
-function AutoFarmBeli()
-    while AutoFarmBeli do
-        local closestNPC = GetClosestNPC()
-        if closestNPC then
-            AttackNPC(closestNPC)
-        end
-        wait(0.1)
-    end
-end
-
-function AutoFarmFragments()
-    while AutoFarmFragments do
-        local closestNPC = GetClosestNPC()
-        if closestNPC then
-            AttackNPC(closestNPC)
-        end
-        wait(0.1)
-    end
-end
-
-function AutoDungeon()
-    while AutoDungeonEnabled do
-        -- Dungeon logic here
-        wait(1)
-    end
-end
-
-function AutoSeaEvents()
-    while AutoSeaEventsEnabled do
-        -- Sea Events logic here
-        wait(1)
-    end
-end
-
-function AutoNewWorld()
-    while AutoNewWorldEnabled do
-        -- New World logic here
-        wait(1)
-    end
-end
-
-function AutoThirdSea()
-    while AutoThirdSeaEnabled do
-        -- Third Sea logic here
-        wait(1)
-    end
-end
-
-function AutoBoss()
-    while AutoBossEnabled do
-        -- Boss logic here
-        wait(1)
-    end
-end
-
-function AutoEliteHunter()
-    while AutoEliteHunterEnabled do
-        -- Elite Hunter logic here
-        wait(1)
-    end
-end
-
-function AutoRaid()
-    while AutoRaidEnabled do
-        -- Raid logic here
-        wait(1)
-    end
-end
-
-function AutoBuy()
-    while AutoBuyEnabled do
-        -- Auto Buy logic here
-        wait(1)
-    end
-end
-
-function AutoSell()
-    while AutoSellEnabled do
-        -- Auto Sell logic here
-        wait(1)
-    end
-end
-
-function AutoCollectChests()
-    while AutoCollectChestsEnabled do
-        -- Chest collection logic here
-        wait(1)
-    end
-end
-
-function AutoCollectFruits()
-    while AutoCollectFruitsEnabled do
-        local closestFruit = GetClosestFruit()
-        if closestFruit then
-            TeleportTo(closestFruit.Handle.CFrame)
-        end
-        wait(1)
-    end
-end
-
-function AutoKen()
-    while AutoKenEnabled do
-        CombatRemote:InvokeServer("Ken", true)
-        wait(0.1)
-    end
-end
-
-function AutoHaki()
-    while AutoHakiEnabled do
-        CombatRemote:InvokeServer("Buso")
-        wait(0.1)
-    end
-end
-
-function AutoBuso()
-    while AutoBusoEnabled do
-        CombatRemote:InvokeServer("Buso")
-        wait(0.1)
-    end
-end
-
-function AutoObservation()
-    while AutoObservationEnabled do
-        CombatRemote:InvokeServer("Observation")
-        wait(0.1)
-    end
-end
-
-function AutoSoru()
-    while AutoSoruEnabled do
-        CombatRemote:InvokeServer("Soru")
-        wait(0.1)
-    end
-end
-
-function AutoGeppo()
-    while AutoGeppoEnabled do
-        CombatRemote:InvokeServer("Geppo")
-        wait(0.1)
-    end
-end
-
--- Main Section
-MainSection:NewToggle("Auto Farm", "Automatically farms nearby NPCs", function(state)
-    AutoFarmEnabled = state
-    if state then
-        AutoFarm()
-    end
-end)
-
-MainSection:NewToggle("Auto Dungeon", "Automatically completes dungeons", function(state)
-    AutoDungeonEnabled = state
-    if state then
-        AutoDungeon()
-    end
-end)
-
-MainSection:NewToggle("Auto Sea Events", "Automatically completes sea events", function(state)
-    AutoSeaEventsEnabled = state
-    if state then
-        AutoSeaEvents()
-    end
-end)
-
-MainSection:NewToggle("Auto New World", "Automatically travels to New World", function(state)
-    AutoNewWorldEnabled = state
-    if state then
-        AutoNewWorld()
-    end
-end)
-
-MainSection:NewToggle("Auto Third Sea", "Automatically travels to Third Sea", function(state)
-    AutoThirdSeaEnabled = state
-    if state then
-        AutoThirdSea()
-    end
-end)
-
--- Auto Farm Section
-AutoFarmSection:NewToggle("Auto Farm Levels", "Automatically farms levels", function(state)
-    AutoFarmLevel = state
-    if state then
-        AutoFarmLevels()
-    end
-end)
-
-AutoFarmSection:NewToggle("Auto Farm Beli", "Automatically farms Beli", function(state)
-    AutoFarmBeli = state
-    if state then
-        AutoFarmBeli()
-    end
-end)
-
-AutoFarmSection:NewToggle("Auto Farm Fragments", "Automatically farms Fragments", function(state)
-    AutoFarmFragments = state
-    if state then
-        AutoFarmFragments()
-    end
-end)
-
-AutoFarmSection:NewDropdown("Select Weapon", "Select your weapon", {"Melee", "Sword", "Gun", "Fruit"}, function(weapon)
-    SelectedWeapon = weapon
-end)
-
-AutoFarmSection:NewDropdown("Select Island", "Select an island", {"First Island", "Second Island", "Third Island"}, function(island)
-    SelectedIsland = island
-end)
-
-AutoFarmSection:NewDropdown("Select Boss", "Select a boss", {"Boss1", "Boss2", "Boss3"}, function(boss)
-    SelectedBoss = boss
-end)
-
--- Player Section
-PlayerSection:NewSlider("Walk Speed", "Changes your walk speed", 500, 16, function(speed)
-    WalkSpeed = speed
-    Humanoid.WalkSpeed = speed
-end)
-
-PlayerSection:NewSlider("Jump Power", "Changes your jump power", 500, 50, function(power)
-    JumpPower = power
-    Humanoid.JumpPower = power
-end)
-
-PlayerSection:NewToggle("Player ESP", "Shows players through walls", function(state)
-    ToggleESP()
-end)
-
-PlayerSection:NewToggle("Auto Ken", "Automatically uses Ken", function(state)
-    AutoKenEnabled = state
-    if state then
-        AutoKen()
-    end
-end)
-
-PlayerSection:NewToggle("Auto Haki", "Automatically uses Haki", function(state)
-    AutoHakiEnabled = state
-    if state then
-        AutoHaki()
-    end
-end)
-
-PlayerSection:NewToggle("Auto Buso", "Automatically uses Buso Haki", function(state)
-    AutoBusoEnabled = state
-    if state then
-        AutoBuso()
-    end
-end)
-
-PlayerSection:NewToggle("Auto Observation", "Automatically uses Observation Haki", function(state)
-    AutoObservationEnabled = state
-    if state then
-        AutoObservation()
-    end
-end)
-
-PlayerSection:NewToggle("Auto Soru", "Automatically uses Soru", function(state)
-    AutoSoruEnabled = state
-    if state then
-        AutoSoru()
-    end
-end)
-
-PlayerSection:NewToggle("Auto Geppo", "Automatically uses Geppo", function(state)
-    AutoGeppoEnabled = state
-    if state then
-        AutoGeppo()
-    end
-end)
-
--- Teleport Section
-TeleportSection:NewButton("Teleport to Selected Island", "Teleports to selected island", function()
-    -- Teleport logic here
-end)
-
-TeleportSection:NewButton("Teleport to Selected Boss", "Teleports to selected boss", function()
-    -- Teleport logic here
-end)
-
-TeleportSection:NewButton("Teleport to Player", "Teleports to a player", function()
-    local closestPlayer = GetClosestPlayer()
-    if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        TeleportTo(closestPlayer.Character.HumanoidRootPart.CFrame)
-    end
-end)
-
-TeleportSection:NewButton("Teleport to Safe Zone", "Teleports to safe zone", function()
-    -- Safe zone logic here
-end)
-
--- Misc Section
-MiscSection:NewToggle("Auto Collect Fruits", "Automatically collects fruits", function(state)
-    AutoCollectFruitsEnabled = state
-    if state then
-        AutoCollectFruits()
-    end
-end)
-
-MiscSection:NewToggle("Auto Collect Chests", "Automatically collects chests", function(state)
-    AutoCollectChestsEnabled = state
-    if state then
-        AutoCollectChests()
-    end
-end)
-
-MiscSection:NewToggle("Auto Buy Items", "Automatically buys items", function(state)
-    AutoBuyEnabled = state
-    if state then
-        AutoBuy()
-    end
-end)
-
-MiscSection:NewToggle("Auto Sell Items", "Automatically sells items", function(state)
-    AutoSellEnabled = state
-    if state then
-        AutoSell()
-    end
-end)
-
-MiscSection:NewButton("Rejoin Server", "Rejoins the current server", function()
-    TeleportService:Teleport(game.PlaceId, Player)
-end)
-
-MiscSection:NewButton("Server Hop", "Joins a different server", function()
-    -- Server hop logic here
-end)
-
--- Anti AFK
-local VirtualUser = game:GetService("VirtualUser")
-Player.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-end)
-
--- Character Added Event
-Player.CharacterAdded:Connect(function(newChar)
-    Character = newChar
-    Humanoid = newChar:WaitForChild("Humanoid")
-    HumanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .creator {
+            font-style: italic;
+            opacity: 0.8;
+        }
+        
+        .version {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background-color: var(--card-color);
+            border: none;
+            border-radius: 5px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab-btn:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .tab-btn.active {
+            background-color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: var(--card-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--primary-color);
+            display: inline-block;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .control {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            flex: 1 1 300px;
+            min-width: 250px;
+        }
+        
+        .control-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .control-title i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+        
+        .control-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 12px;
+        }
+        
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--success-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c23616;
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+        
+        .slider-control {
+            width: 100%;
+        }
+        
+        .slider-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        .status-on {
+            background-color: var(--success-color);
+        }
+        
+        .status-off {
+            background-color: var(--danger-color);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .control {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NEON HUB</h1>
+            <p class="creator">Created by XxxzgyxxX</p>
+            <span class="version">v1.5 - Blox Fruits</span>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="main">Main</button>
+            <button class="tab-btn" data-tab="autofarm">Auto Farm</button>
+            <button class="tab-btn" data-tab="player">Player</button>
+            <button class="tab-btn" data-tab="teleport">Teleport</button>
+            <button class="tab-btn" data-tab="misc">Misc</button>
+        </div>
+        
+        <!-- Main Tab -->
+        <div id="main" class="tab-content active">
+            <div class="section">
+                <h3 class="section-title">Main Features</h3>
+                <div class="control-group">
+                    <div class="control">
+                        <div class="control-title"><i>⚙️</i> Auto Farm</div>
+                        <div class="control-desc">Automatically farms nearby NPCs</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoFarm">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoFarmStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🏰</i> Auto Dungeon</div>
+                        <div class="control-desc">Automatically completes dungeons</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoDungeon">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoDungeonStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🌊</i> Auto Sea Events</div>
+                        <div class="control-desc">Automatically completes sea events</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoSeaEvents">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoSeaEventsStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🌎</i> Auto New World</div>
+                        <div class="control-desc">Automatically travels to New World</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoNewWorld">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoNewWorldStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🔥</i> Auto Third Sea</div>
+                        <div class="control-desc">Automatically travels to Third Sea</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoThirdSea">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoThirdSeaStatus" class="status status-off">OFF</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Auto Farm Tab -->
+        <div id="autofarm" class="tab-content">
+            <div class="section">
+                <h3 class="section-title">Auto Farm Options</h3>
+                <div class="control-group">
+                    <div class="control">
+                        <div class="control-title"><i>📈</i> Auto Farm Levels</div>
+                        <div class="control-desc">Automatically farms levels</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoFarmLevel">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoFarmLevelStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>💰</i> Auto Farm Beli</div>
+                        <div class="control-desc">Automatically farms Beli</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoFarmBeli">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoFarmBeliStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>💎</i> Auto Farm Fragments</div>
+                        <div class="control-desc">Automatically farms Fragments</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoFarmFragments">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoFarmFragmentsStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>⚔️</i> Select Weapon</div>
+                        <div class="control-desc">Select your weapon</div>
+                        <select id="weaponSelect">
+                            <option value="melee">Melee</option>
+                            <option value="sword">Sword</option>
+                            <option value="gun">Gun</option>
+                            <option value="fruit">Fruit</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🏝️</i> Select Island</div>
+                        <div class="control-desc">Select an island</div>
+                        <select id="islandSelect">
+                            <option value="first">First Island</option>
+                            <option value="second">Second Island</option>
+                            <option value="third">Third Island</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>👹</i> Select Boss</div>
+                        <div class="control-desc">Select a boss</div>
+                        <select id="bossSelect">
+                            <option value="boss1">Boss 1</option>
+                            <option value="boss2">Boss 2</option>
+                            <option value="boss3">Boss 3</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Player Tab -->
+        <div id="player" class="tab-content">
+            <div class="section">
+                <h3 class="section-title">Player Modifications</h3>
+                <div class="control-group">
+                    <div class="control">
+                        <div class="control-title"><i>🏃‍♂️</i> Walk Speed</div>
+                        <div class="control-desc">Changes your walk speed</div>
+                        <input type="range" min="16" max="500" value="16" class="slider-control" id="walkSpeed">
+                        <span class="slider-value" id="walkSpeedValue">16</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🦘</i> Jump Power</div>
+                        <div class="control-desc">Changes your jump power</div>
+                        <input type="range" min="50" max="500" value="50" class="slider-control" id="jumpPower">
+                        <span class="slider-value" id="jumpPowerValue">50</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>👁️</i> Player ESP</div>
+                        <div class="control-desc">Shows players through walls</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="playerESP">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="playerESPStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🛡️</i> Auto Ken</div>
+                        <div class="control-desc">Automatically uses Ken</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoKen">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoKenStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🔮</i> Auto Haki</div>
+                        <div class="control-desc">Automatically uses Haki</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoHaki">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoHakiStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>💪</i> Auto Buso</div>
+                        <div class="control-desc">Automatically uses Buso Haki</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoBuso">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoBusoStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>👀</i> Auto Observation</div>
+                        <div class="control-desc">Automatically uses Observation Haki</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoObservation">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoObservationStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>⚡</i> Auto Soru</div>
+                        <div class="control-desc">Automatically uses Soru</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoSoru">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoSoruStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🦅</i> Auto Geppo</div>
+                        <div class="control-desc">Automatically uses Geppo</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoGeppo">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoGeppoStatus" class="status status-off">OFF</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Teleport Tab -->
+        <div id="teleport" class="tab-content">
+            <div class="section">
+                <h3 class="section-title">Teleport Options</h3>
+                <div class="control-group">
+                    <div class="control">
+                        <div class="control-title"><i>🏝️</i> Teleport to Selected Island</div>
+                        <div class="control-desc">Teleports to selected island</div>
+                        <button class="btn" id="teleportIsland">Teleport</button>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>👹</i> Teleport to Selected Boss</div>
+                        <div class="control-desc">Teleports to selected boss</div>
+                        <button class="btn" id="teleportBoss">Teleport</button>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>👤</i> Teleport to Player</div>
+                        <div class="control-desc">Teleports to a player</div>
+                        <button class="btn" id="teleportPlayer">Teleport</button>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🛡️</i> Teleport to Safe Zone</div>
+                        <div class="control-desc">Teleports to safe zone</div>
+                        <button class="btn" id="teleportSafeZone">Teleport</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Misc Tab -->
+        <div id="misc" class="tab-content">
+            <div class="section">
+                <h3 class="section-title">Miscellaneous</h3>
+                <div class="control-group">
+                    <div class="control">
+                        <div class="control-title"><i>🍎</i> Auto Collect Fruits</div>
+                        <div class="control-desc">Automatically collects fruits</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoCollectFruits">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoCollectFruitsStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🧰</i> Auto Collect Chests</div>
+                        <div class="control-desc">Automatically collects chests</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoCollectChests">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoCollectChestsStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🛒</i> Auto Buy Items</div>
+                        <div class="control-desc">Automatically buys items</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoBuy">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoBuyStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>💰</i> Auto Sell Items</div>
+                        <div class="control-desc">Automatically sells items</div>
+                        <label class="toggle">
+                            <input type="checkbox" id="autoSell">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="autoSellStatus" class="status status-off">OFF</span>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🔄</i> Rejoin Server</div>
+                        <div class="control-desc">Rejoins the current server</div>
+                        <button class="btn" id="rejoinServer">Rejoin</button>
+                    </div>
+                    
+                    <div class="control">
+                        <div class="control-title"><i>🌐</i> Server Hop</div>
+                        <div class="control-desc">Joins a different server</div>
+                        <button class="btn" id="serverHop">Hop Server</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            NEON HUB - Blox Fruits Script | Created by XxxzgyxxX | v1.5
+            <br>
+            <small>This is a UI demonstration only. Actual functionality requires integration with game scripts.</small>
+        </footer>
+    </div>
     
-    Humanoid.WalkSpeed = WalkSpeed
-    Humanoid.JumpPower = JumpPower
-end)
-
-print("NEON HUB loaded successfully! Created by XxxzgyxxX")
+    <script>
+        // Tab functionality
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                
+                // Remove active class from all buttons and contents
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding content
+                btn.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Toggle switches functionality
+        const toggleSwitches = document.querySelectorAll('.toggle input');
+        
+        toggleSwitches.forEach(switchEl => {
+            switchEl.addEventListener('change', function() {
+                const statusId = this.id + 'Status';
+                const statusEl = document.getElementById(statusId);
+                
+                if (this.checked) {
+                    statusEl.textContent = 'ON';
+                    statusEl.classList.remove('status-off');
+                    statusEl.classList.add('status-on');
+                    console.log(`${this.id} activated`);
+                    // Here you would add the actual functionality
+                } else {
+                    statusEl.textContent = 'OFF';
+                    statusEl.classList.remove('status-on');
+                    statusEl.classList.add('status-off');
+                    console.log(`${this.id} deactivated`);
+                    // Here you would remove the actual functionality
+                }
+            });
+        });
+        
+        // Sliders functionality
+        const walkSpeedSlider = document.getElementById('walkSpeed');
+        const walkSpeedValue = document.getElementById('walkSpeedValue');
+        const jumpPowerSlider = document.getElementById('jumpPower');
+        const jumpPowerValue = document.getElementById('jumpPowerValue');
+        
+        walkSpeedSlider.addEventListener('input', function() {
+            walkSpeedValue.textContent = this.value;
+            console.log(`Walk speed set to: ${this.value}`);
+            // Here you would set the actual walk speed in the game
+        });
+        
+        jumpPowerSlider.addEventListener('input', function() {
+            jumpPowerValue.textContent = this.value;
+            console.log(`Jump power set to: ${this.value}`);
+            // Here you would set the actual jump power in the game
+        });
+        
+        // Buttons functionality
+        document.getElementById('teleportIsland').addEventListener('click', function() {
+            const island = document.getElementById('islandSelect').value;
+            console.log(`Teleporting to ${island}`);
+            alert(`Teleporting to ${island} (simulated)`);
+            // Here you would add the actual teleport functionality
+        });
+        
+        document.getElementById('teleportBoss').addEventListener('click', function() {
+            const boss = document.getElementById('bossSelect').value;
+            console.log(`Teleporting to ${boss}`);
+            alert(`Teleporting to ${boss} (simulated)`);
+            // Here you would add the actual teleport functionality
+        });
+        
+        document.getElementById('teleportPlayer').addEventListener('click', function() {
+            console.log('Teleporting to player');
+            alert('Teleporting to nearest player (simulated)');
+            // Here you would add the actual teleport functionality
+        });
+        
+        document.getElementById('teleportSafeZone').addEventListener('click', function() {
+            console.log('Teleporting to safe zone');
+            alert('Teleporting to safe zone (simulated)');
+            // Here you would add the actual teleport functionality
+        });
+        
+        document.getElementById('rejoinServer').addEventListener('click', function() {
+            console.log('Rejoining server');
+            alert('Rejoining server (simulated)');
+            // Here you would add the actual rejoin functionality
+        });
+        
+        document.getElementById('serverHop').addEventListener('click', function() {
+            console.log('Server hopping');
+            alert('Server hopping (simulated)');
+            // Here you would add the actual server hop functionality
+        });
+        
+        // Initialize
+        console.log('NEON HUB loaded successfully! Created by XxxzgyxxX');
+    </script>
+</body>
+</html>
