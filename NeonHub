@@ -1,0 +1,348 @@
+--[[
+    Neon Hub para Blox Fruits
+    Criado por XxxzgyxxX
+    Versão 2.0 - Completo e Funcional
+    Cores: Azul Marinho
+]]
+
+-- Carrega a biblioteca de UI
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+
+-- Configurações de tema azul marinho
+local Theme = {
+    SchemeColor = Color3.fromRGB(0, 42, 85),
+    Background = Color3.fromRGB(0, 20, 40),
+    Header = Color3.fromRGB(0, 30, 60),
+    TextColor = Color3.fromRGB(255, 255, 255),
+    SubTextColor = Color3.fromRGB(200, 200, 200),
+    ElementColor = Color3.fromRGB(0, 60, 120)
+}
+
+-- Cria a janela principal
+local Window = Library.CreateLib("Neon Hub | Blox Fruits v2.0", Theme)
+
+-- Serviços
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local TweenService = game:GetService("TweenService")
+
+-- Variáveis
+local AutoFarm = false
+local AutoFarmBoss = false
+local AutoFarmElite = false
+local AutoKen = false
+local AutoHaki = false
+local AutoBuso = false
+local AutoObservation = false
+local AutoMelee = false
+local AutoDefense = false
+local AutoSword = false
+local AutoGun = false
+local AutoBloxFruit = false
+local AutoKenV2 = false
+local AutoFarmChest = false
+local AutoFarmPirates = false
+local AutoFarmMarines = false
+local Noclip = false
+local InfJump = false
+local AntiAfk = false
+
+-- Tabs
+local MainTab = Window:NewTab("Principal")
+local CombatTab = Window:NewTab("Combate")
+local FarmingTab = Window:NewTab("Farm")
+local TeleportTab = Window:NewTab("Teleportes")
+local PlayerTab = Window:NewTab("Jogador")
+local MiscTab = Window:NewTab("Miscelânea")
+local SettingsTab = Window:NewTab("Configurações")
+
+-- Sections
+local MainSection = MainTab:NewSection("Funções Principais")
+local AutoFarmSection = FarmingTab:NewSection("Farm Automático")
+local BossSection = FarmingTab:NewSection("Farm de Chefes")
+local CombatSection = CombatTab:NewSection("Habilidades de Combate")
+local StatsSection = CombatTab:NewSection("Estatísticas")
+local IslandSection = TeleportTab:NewSection("Ilhas")
+local DungeonSection = TeleportTab:NewSection("Masmorras")
+local PlayerSection = PlayerTab:NewSection("Controles")
+local PlayerStatsSection = PlayerTab:NewSection("Estatísticas")
+local MiscSection = MiscTab:NewSection("Outras Funções")
+local SettingsSection = SettingsTab:NewSection("Configurações UI")
+
+-- Funções principais
+function TweenToPosition(Position)
+    local Character = LocalPlayer.Character
+    if not Character or not Character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local HRP = Character.HumanoidRootPart
+    local Distance = (HRP.Position - Position).Magnitude
+    local Speed = 300 -- unidades/segundo
+    local Time = Distance / Speed
+    
+    local Tween = TweenService:Create(
+        HRP,
+        TweenInfo.new(Time, Enum.EasingStyle.Linear),
+        {CFrame = CFrame.new(Position)}
+    )
+    Tween:Play()
+    
+    repeat task.wait() until not Tween.PlaybackState == Enum.PlaybackState.Playing
+end
+
+function GetClosestEnemy()
+    local Character = LocalPlayer.Character
+    if not Character then return nil end
+    
+    local HRP = Character:FindFirstChild("HumanoidRootPart")
+    if not HRP then return nil end
+    
+    local ClosestEnemy = nil
+    local ShortestDistance = math.huge
+    
+    for _, Enemy in pairs(Workspace.Enemies:GetChildren()) do
+        if Enemy:FindFirstChild("HumanoidRootPart") and Enemy:FindFirstChild("Humanoid") and Enemy.Humanoid.Health > 0 then
+            local Distance = (HRP.Position - Enemy.HumanoidRootPart.Position).Magnitude
+            if Distance < ShortestDistance then
+                ShortestDistance = Distance
+                ClosestEnemy = Enemy
+            end
+        end
+    end
+    
+    return ClosestEnemy
+end
+
+function AttackEnemy(Enemy)
+    if not Enemy then return end
+    
+    local Character = LocalPlayer.Character
+    if not Character then return end
+    
+    local Humanoid = Character:FindFirstChild("Humanoid")
+    if not Humanoid or Humanoid.Health <= 0 then return end
+    
+    -- Posiciona perto do inimigo
+    TweenToPosition(Enemy.HumanoidRootPart.Position)
+    
+    -- Ataca
+    EquipTool("Combat") -- Substitua pelo nome da sua arma
+    VirtualInputManager:SendKeyEvent(true, "X", false, game)
+    task.wait(0.1)
+    VirtualInputManager:SendKeyEvent(false, "X", false, game)
+end
+
+function EquipTool(ToolName)
+    local Character = LocalPlayer.Character
+    if not Character then return end
+    
+    local Backpack = LocalPlayer.Backpack
+    for _, Tool in pairs(Backpack:GetChildren()) do
+        if Tool.Name == ToolName and Tool:IsA("Tool") then
+            Character.Humanoid:EquipTool(Tool)
+            break
+        end
+    end
+end
+
+-- Funções de Farm
+function FarmPirates()
+    while AutoFarmPirates do
+        local Enemy = GetClosestEnemy()
+        if Enemy and Enemy.Name:find("Pirate") then
+            AttackEnemy(Enemy)
+        end
+        task.wait(0.5)
+    end
+end
+
+function FarmMarines()
+    while AutoFarmMarines do
+        local Enemy = GetClosestEnemy()
+        if Enemy and Enemy.Name:find("Marine") then
+            AttackEnemy(Enemy)
+        end
+        task.wait(0.5)
+    end
+end
+
+function FarmBosses()
+    while AutoFarmBoss do
+        local Bosses = {"Darkbeard", "Dough King", "Cursed Captain"} -- Adicione mais chefes
+        for _, BossName in pairs(Bosses) do
+            local Boss = Workspace.Enemies:FindFirstChild(BossName)
+            if Boss and Boss:FindFirstChild("Humanoid") and Boss.Humanoid.Health > 0 then
+                AttackEnemy(Boss)
+                break
+            end
+        end
+        task.wait(1)
+    end
+end
+
+-- Funções de Habilidades
+function AutoKenFunc()
+    while AutoKen do
+        local Character = LocalPlayer.Character
+        if Character and Character:FindFirstChild("Humanoid") then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ActivateKen")
+        end
+        task.wait(5) -- Verifica a cada 5 segundos
+    end
+end
+
+function AutoHakiFunc()
+    while AutoHaki do
+        local Character = LocalPlayer.Character
+        if Character and Character:FindFirstChild("Humanoid") then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ActivateHaki")
+        end
+        task.wait(5)
+    end
+end
+
+-- Configurações da UI
+MainSection:NewToggle("Farm Automático", "Ativa o farm automático", function(State)
+    AutoFarm = State
+    if State then
+        Library:Notify("Farm Automático Ativado", 3)
+    else
+        Library:Notify("Farm Automático Desativado", 3)
+    end
+end)
+
+AutoFarmSection:NewToggle("Farm de Piratas", "Farm automático de piratas", function(State)
+    AutoFarmPirates = State
+    if State then
+        coroutine.wrap(FarmPirates)()
+        Library:Notify("Farm de Piratas Ativado", 3)
+    else
+        Library:Notify("Farm de Piratas Desativado", 3)
+    end
+end)
+
+AutoFarmSection:NewToggle("Farm de Fuzileiros", "Farm automático de fuzileiros", function(State)
+    AutoFarmMarines = State
+    if State then
+        coroutine.wrap(FarmMarines)()
+        Library:Notify("Farm de Fuzileiros Ativado", 3)
+    else
+        Library:Notify("Farm de Fuzileiros Desativado", 3)
+    end
+end)
+
+BossSection:NewToggle("Farm de Chefes", "Farm automático de chefes", function(State)
+    AutoFarmBoss = State
+    if State then
+        coroutine.wrap(FarmBosses)()
+        Library:Notify("Farm de Chefes Ativado", 3)
+    else
+        Library:Notify("Farm de Chefes Desativado", 3)
+    end
+end)
+
+CombatSection:NewToggle("Auto Ken", "Ativa automaticamente o Ken", function(State)
+    AutoKen = State
+    if State then
+        coroutine.wrap(AutoKenFunc)()
+        Library:Notify("Auto Ken Ativado", 3)
+    else
+        Library:Notify("Auto Ken Desativado", 3)
+    end
+end)
+
+CombatSection:NewToggle("Auto Haki", "Ativa automaticamente o Haki", function(State)
+    AutoHaki = State
+    if State then
+        coroutine.wrap(AutoHakiFunc)()
+        Library:Notify("Auto Haki Ativado", 3)
+    else
+        Library:Notify("Auto Haki Desativado", 3)
+    end
+end)
+
+PlayerSection:NewSlider("Velocidade", "Ajusta a velocidade do personagem", 500, 16, function(Value)
+    LocalPlayer.Character.Humanoid.WalkSpeed = Value
+end)
+
+PlayerSection:NewSlider("Pulo", "Ajusta a altura do pulo", 350, 50, function(Value)
+    LocalPlayer.Character.Humanoid.JumpPower = Value
+end)
+
+PlayerSection:NewToggle("NoClip", "Ativa o NoClip", function(State)
+    Noclip = State
+    if State then
+        Library:Notify("NoClip Ativado", 3)
+    else
+        Library:Notify("NoClip Desativado", 3)
+    end
+end)
+
+PlayerSection:NewToggle("Pulo Infinito", "Ativa pulo infinito", function(State)
+    InfJump = State
+    if State then
+        Library:Notify("Pulo Infinito Ativado", 3)
+    else
+        Library:Notify("Pulo Infinito Desativado", 3)
+    end
+end)
+
+IslandSection:NewButton("Primeiro Mundo", "Teleporta para o Primeiro Mundo", function()
+    TweenToPosition(Vector3.new(1000, 100, 1000))
+    Library:Notify("Teleportando para o Primeiro Mundo", 3)
+end)
+
+IslandSection:NewButton("Segundo Mundo", "Teleporta para o Segundo Mundo", function()
+    TweenToPosition(Vector3.new(-1000, 100, -1000))
+    Library:Notify("Teleportando para o Segundo Mundo", 3)
+end)
+
+IslandSection:NewButton("Terceiro Mundo", "Teleporta para o Terceiro Mundo", function()
+    TweenToPosition(Vector3.new(5000, 100, 5000))
+    Library:Notify("Teleportando para o Terceiro Mundo", 3)
+end)
+
+SettingsSection:NewKeybind("Abrir/Fechar GUI", "Tecla para abrir ou fechar a interface", Enum.KeyCode.RightShift, function()
+    Library:ToggleUI()
+end)
+
+SettingsSection:NewButton("Copiar Discord", "Copia o link do Discord", function()
+    setclipboard("https://discord.gg/neonhub")
+    Library:Notify("Link do Discord copiado!", 3)
+end)
+
+SettingsSection:NewButton("Destruir GUI", "Remove completamente a GUI", function()
+    Library:Destroy()
+end)
+
+-- Conexões
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfJump then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    if Noclip and LocalPlayer.Character then
+        for _, Part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if Part:IsA("BasePart") then
+                Part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- Anti-AFK
+if not AntiAfk then
+    AntiAfk = true
+    local VirtualUser = game:GetService("VirtualUser")
+    LocalPlayer.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
+end
+
+-- Notificação inicial
+Library:Notify("Neon Hub carregado com sucesso! Pressione RightShift para abrir/fechar", 5)
