@@ -1,0 +1,295 @@
+--[[
+    Auto Farm Premium para Blox Fruits
+    Interface estilo chat com UI personalizada
+    Versão: 1.0 Premium
+]]
+
+-- Serviços
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- Variáveis do jogador
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
+
+-- Configurações
+local Settings = {
+    Enabled = false,
+    FarmNearby = true,
+    FarmDistance = 100,
+    FarmLevel = 50,
+    AutoCollectDrops = true,
+    AutoSell = true,
+    SkillCombo = {"Z", "X", "C", "V"},
+    WhitelistedMobs = {},
+    BlacklistedMobs = {},
+    Priority = "Level" -- Level, Distance, Health
+}
+
+-- UI Premium
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoFarmPremiumUI"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Frame principal (estilo chat)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0.25, 0, 0.35, 0)
+MainFrame.Position = UDim2.new(0.02, 0, 0.6, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+MainFrame.BackgroundTransparency = 0.2
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+-- Canto arredondado
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- Barra de título
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0.08, 0)
+TitleBar.Position = UDim2.new(0, 0, 0, 0)
+TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(0.8, 0, 1, 0)
+Title.Position = UDim2.new(0.1, 0, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "AUTO FARM PREMIUM"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+Title.Parent = TitleBar
+
+-- Botão de toggle
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0.15, 0, 0.8, 0)
+ToggleButton.Position = UDim2.new(0.82, 0, 0.1, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+ToggleButton.Text = "OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextScaled = true
+ToggleButton.Parent = TitleBar
+
+local UICorner2 = Instance.new("UICorner")
+UICorner2.CornerRadius = UDim.new(0, 4)
+UICorner2.Parent = ToggleButton
+
+-- Área de log
+local LogFrame = Instance.new("ScrollingFrame")
+LogFrame.Name = "LogFrame"
+LogFrame.Size = UDim2.new(0.95, 0, 0.7, 0)
+LogFrame.Position = UDim2.new(0.025, 0, 0.1, 0)
+LogFrame.BackgroundTransparency = 1
+LogFrame.ScrollBarThickness = 4
+LogFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+LogFrame.Parent = MainFrame
+
+local LogLayout = Instance.new("UIListLayout")
+LogLayout.Padding = UDim.new(0, 5)
+LogLayout.Parent = LogFrame
+
+-- Painel de configurações
+local ConfigFrame = Instance.new("Frame")
+ConfigFrame.Name = "ConfigFrame"
+ConfigFrame.Size = UDim2.new(0.95, 0, 0.2, 0)
+ConfigFrame.Position = UDim2.new(0.025, 0, 0.82, 0)
+ConfigFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+ConfigFrame.BackgroundTransparency = 0.3
+ConfigFrame.Parent = MainFrame
+
+local UICorner3 = Instance.new("UICorner")
+UICorner3.CornerRadius = UDim.new(0, 6)
+UICorner3.Parent = ConfigFrame
+
+-- Botões de configuração
+local ConfigButtons = {
+    AutoSell = createConfigButton("Auto Sell", UDim2.new(0.2, 0, 0.7, 0),
+    AutoCollect = createConfigButton("Auto Collect", UDim2.new(0.4, 0, 0.7, 0)),
+    FarmNear = createConfigButton("Farm Nearby", UDim2.new(0.6, 0, 0.7, 0))
+}
+
+-- Função para criar botões de configuração
+function createConfigButton(text, position)
+    local button = Instance.new("TextButton")
+    button.Name = text .. "Button"
+    button.Size = UDim2.new(0.18, 0, 0.6, 0)
+    button.Position = position
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextScaled = true
+    button.Font = Enum.Font.Gotham
+    button.Parent = ConfigFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 4)
+    corner.Parent = button
+    
+    return button
+end
+
+-- Função para adicionar log
+function addLog(message, color)
+    color = color or Color3.fromRGB(255, 255, 255)
+    
+    local logEntry = Instance.new("TextLabel")
+    logEntry.Name = "LogEntry"
+    logEntry.Size = UDim2.new(1, 0, 0, 20)
+    logEntry.BackgroundTransparency = 1
+    logEntry.Text = "> " .. message
+    logEntry.TextColor3 = color
+    logEntry.TextXAlignment = Enum.TextXAlignment.Left
+    logEntry.Font = Enum.Font.Gotham
+    logEntry.TextSize = 14
+    logEntry.Parent = LogFrame
+    
+    -- Scroll automático para baixo
+    wait()
+    LogFrame.CanvasPosition = Vector2.new(0, LogFrame.AbsoluteCanvasSize.Y)
+end
+
+-- Função para encontrar o mob mais próximo
+function findNearestMob()
+    local nearestMob = nil
+    local nearestDistance = Settings.FarmDistance
+    
+    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
+        if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+            local distance = (HumanoidRootPart.Position - mob.HumanoidRootPart.Position).Magnitude
+            
+            if distance <= nearestDistance then
+                nearestMob = mob
+                nearestDistance = distance
+            end
+        end
+    end
+    
+    return nearestMob
+end
+
+-- Função para atacar o mob
+function attackMob(mob)
+    if not mob or not mob:FindFirstChild("HumanoidRootPart") then return end
+    
+    -- Movimentação
+    Humanoid:MoveTo(mob.HumanoidRootPart.Position)
+    
+    -- Ataques com skills
+    for _, skill in ipairs(Settings.SkillCombo) do
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, skill, false, game)
+        wait(0.2)
+        game:GetService("VirtualInputManager"):SendKeyEvent(false, skill, false, game)
+        wait(0.5)
+    end
+end
+
+-- Função principal de farm
+function farmLoop()
+    while Settings.Enabled do
+        local nearestMob = findNearestMob()
+        
+        if nearestMob then
+            addLog("Farmando: " .. nearestMob.Name, Color3.fromRGB(100, 255, 100))
+            attackMob(nearestMob)
+        else
+            addLog("Procurando mobs próximos...", Color3.fromRGB(255, 255, 100))
+            wait(1)
+        end
+        
+        wait(0.1)
+    end
+end
+
+-- Função para coletar drops
+function collectDrops()
+    while Settings.Enabled and Settings.AutoCollectDrops do
+        for _, drop in ipairs(workspace:GetChildren()) do
+            if drop.Name == "FruitDrop" or drop.Name == "Chest" then
+                local distance = (HumanoidRootPart.Position - drop.Position).Magnitude
+                
+                if distance <= 50 then
+                    Humanoid:MoveTo(drop.Position)
+                    wait(0.5)
+                end
+            end
+        end
+        wait(2)
+    end
+end
+
+-- Função para vender automaticamente
+function autoSell()
+    -- Implementação da venda automática
+    -- (Depende da localização e mecânicas específicas do jogo)
+end
+
+-- Eventos
+ToggleButton.MouseButton1Click:Connect(function()
+    Settings.Enabled = not Settings.Enabled
+    
+    if Settings.Enabled then
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+        ToggleButton.Text = "ON"
+        addLog("Auto Farm iniciado", Color3.fromRGB(50, 255, 50))
+        
+        -- Iniciar loops
+        spawn(farmLoop)
+        spawn(collectDrops)
+        if Settings.AutoSell then spawn(autoSell) end
+    else
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        ToggleButton.Text = "OFF"
+        addLog("Auto Farm pausado", Color3.fromRGB(255, 50, 50))
+    end
+end)
+
+-- Configuração dos botões
+ConfigButtons.AutoSell.MouseButton1Click:Connect(function()
+    Settings.AutoSell = not Settings.AutoSell
+    updateButtonAppearance(ConfigButtons.AutoSell, Settings.AutoSell)
+    addLog("Auto Sell: " .. (Settings.AutoSell and "ON" or "OFF"))
+end)
+
+ConfigButtons.AutoCollect.MouseButton1Click:Connect(function()
+    Settings.AutoCollectDrops = not Settings.AutoCollectDrops
+    updateButtonAppearance(ConfigButtons.AutoCollect, Settings.AutoCollectDrops)
+    addLog("Auto Collect: " .. (Settings.AutoCollectDrops and "ON" or "OFF"))
+end)
+
+ConfigButtons.FarmNear.MouseButton1Click:Connect(function()
+    Settings.FarmNearby = not Settings.FarmNearby
+    updateButtonAppearance(ConfigButtons.FarmNear, Settings.FarmNearby)
+    addLog("Farm Nearby: " .. (Settings.FarmNearby and "ON" or "OFF"))
+end)
+
+-- Atualizar aparência dos botões
+function updateButtonAppearance(button, state)
+    if state then
+        button.BackgroundColor3 = Color3.fromRGB(80, 180, 80)
+    else
+        button.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    end
+end
+
+-- Inicialização
+addLog("Auto Farm Premium carregado!", Color3.fromRGB(100, 150, 255))
+addLog("Clique no botão ON para iniciar")
+
+-- Atualizar estados iniciais dos botões
+updateButtonAppearance(ConfigButtons.AutoSell, Settings.AutoSell)
+updateButtonAppearance(ConfigButtons.AutoCollect, Settings.AutoCollectDrops)
+updateButtonAppearance(ConfigButtons.FarmNear, Settings.FarmNearby)
