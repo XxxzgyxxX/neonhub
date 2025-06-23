@@ -1,0 +1,536 @@
+-- Neon Hub - Painel Principal
+-- Versão: 9999
+-- Criado por: xxxzgyxxx
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Configurações do painel
+local config = {
+    mainColor = Color3.fromRGB(255, 215, 0), -- Dourado
+    backgroundColor = Color3.fromRGB(26, 26, 46),
+    secondaryColor = Color3.fromRGB(22, 33, 62),
+    textColor = Color3.fromRGB(255, 255, 255),
+    accentColor = Color3.fromRGB(0, 255, 136),
+    version = "2.5.1",
+    title = "Neon Hub"
+}
+
+-- Função para criar efeitos de tween
+local function createTween(object, properties, duration, easingStyle)
+    duration = duration or 0.3
+    easingStyle = easingStyle or Enum.EasingStyle.Quart
+    local tweenInfo = TweenInfo.new(duration, easingStyle, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(object, tweenInfo, properties)
+    return tween
+end
+
+-- Função para criar notificação
+local function createNotification(message, duration)
+    duration = duration or 3
+    
+    local notification = Instance.new("Frame")
+    notification.Name = "NeonHubNotification"
+    notification.Size = UDim2.new(0, 300, 0, 80)
+    notification.Position = UDim2.new(1, -320, 0, 20)
+    notification.BackgroundColor3 = config.accentColor
+    notification.BorderSizePixel = 0
+    notification.Parent = playerGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = notification
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, -20, 1, -20)
+    textLabel.Position = UDim2.new(0, 10, 0, 10)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = message
+    textLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.TextScaled = true
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.Parent = notification
+    
+    -- Animação de entrada
+    createTween(notification, {Position = UDim2.new(1, -320, 0, 20)}):Play()
+    
+    -- Remover após o tempo especificado
+    wait(duration)
+    createTween(notification, {Position = UDim2.new(1, 20, 0, 20)}):Play()
+    wait(0.3)
+    notification:Destroy()
+end
+
+-- Criação da interface principal
+local function createMainGUI()
+    -- Destruir GUI existente se houver
+    if playerGui:FindFirstChild("BananaCatGUI") then
+        playerGui.BananaCatGUI:Destroy()
+    end
+    
+    -- Frame principal
+    local mainFrame = Instance.new("ScreenGui")
+    mainFrame.Name = "BananaCatGUI"
+    mainFrame.ResetOnSpawn = false
+    mainFrame.Parent = playerGui
+    
+    -- Container principal
+    local container = Instance.new("Frame")
+    container.Name = "MainContainer"
+    container.Size = UDim2.new(0, 800, 0, 600)
+    container.Position = UDim2.new(0.5, -400, 0.5, -300)
+    container.BackgroundColor3 = config.backgroundColor
+    container.BorderSizePixel = 0
+    container.Parent = mainFrame
+    
+    local containerCorner = Instance.new("UICorner")
+    containerCorner.CornerRadius = UDim.new(0, 15)
+    containerCorner.Parent = container
+    
+    -- Barra superior
+    local topBar = Instance.new("Frame")
+    topBar.Name = "TopBar"
+    topBar.Size = UDim2.new(1, 0, 0, 60)
+    topBar.Position = UDim2.new(0, 0, 0, 0)
+    topBar.BackgroundColor3 = config.secondaryColor
+    topBar.BorderSizePixel = 0
+    topBar.Parent = container
+    
+    local topBarCorner = Instance.new("UICorner")
+    topBarCorner.CornerRadius = UDim.new(0, 15)
+    topBarCorner.Parent = topBar
+    
+    -- Título
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(0, 400, 1, 0)
+    titleLabel.Position = UDim2.new(0, 20, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = config.title
+    titleLabel.TextColor3 = config.mainColor
+    titleLabel.TextSize = 24
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = topBar
+    
+    -- Versão
+    local versionLabel = Instance.new("TextLabel")
+    versionLabel.Name = "Version"
+    versionLabel.Size = UDim2.new(0, 100, 1, 0)
+    versionLabel.Position = UDim2.new(1, -120, 0, 0)
+    versionLabel.BackgroundTransparency = 1
+    versionLabel.Text = "v" .. config.version
+    versionLabel.TextColor3 = config.textColor
+    versionLabel.TextSize = 16
+    versionLabel.Font = Enum.Font.Gotham
+    versionLabel.TextXAlignment = Enum.TextXAlignment.Right
+    versionLabel.Parent = topBar
+    
+    -- Botão de fechar
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 40, 0, 40)
+    closeButton.Position = UDim2.new(1, -50, 0, 10)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    closeButton.Text = "✕"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 20
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.BorderSizePixel = 0
+    closeButton.Parent = topBar
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 8)
+    closeCorner.Parent = closeButton
+    
+    -- Sidebar
+    local sidebar = Instance.new("Frame")
+    sidebar.Name = "Sidebar"
+    sidebar.Size = UDim2.new(0, 200, 1, -60)
+    sidebar.Position = UDim2.new(0, 0, 0, 60)
+    sidebar.BackgroundColor3 = config.secondaryColor
+    sidebar.BorderSizePixel = 0
+    sidebar.Parent = container
+    
+    -- Área de conteúdo
+    local contentArea = Instance.new("Frame")
+    contentArea.Name = "ContentArea"
+    contentArea.Size = UDim2.new(1, -200, 1, -60)
+    contentArea.Position = UDim2.new(0, 200, 0, 60)
+    contentArea.BackgroundTransparency = 1
+    contentArea.Parent = container
+    
+    -- Lista de scripts
+    local scriptsData = {
+        {name = "🎮 Auto Farm", desc = "Farm automático universal", premium = false},
+        {name = "🔫 Aimbot", desc = "Mira automática avançada", premium = true},
+        {name = "👻 ESP/Wallhack", desc = "Ver através das paredes", premium = true},
+        {name = "🚀 Speed Hack", desc = "Modificador de velocidade", premium = false},
+        {name = "💎 Item Spawner", desc = "Gerador de itens premium", premium = true},
+        {name = "🛡️ God Mode", desc = "Modo imortal", premium = true},
+        {name = "💰 Money Farm", desc = "Farm de dinheiro automático", premium = false},
+        {name = "📍 Teleport", desc = "Teletransporte instantâneo", premium = false}
+    }
+    
+    -- Função para criar botões da sidebar
+    local function createSidebarButton(text, icon, position, callback)
+        local button = Instance.new("TextButton")
+        button.Name = text .. "Button"
+        button.Size = UDim2.new(1, -20, 0, 45)
+        button.Position = UDim2.new(0, 10, 0, position)
+        button.BackgroundColor3 = Color3.fromRGB(255, 255, 255, 0.05)
+        button.Text = icon .. " " .. text
+        button.TextColor3 = config.textColor
+        button.TextSize = 16
+        button.Font = Enum.Font.Gotham
+        button.TextXAlignment = Enum.TextXAlignment.Left
+        button.BorderSizePixel = 0
+        button.Parent = sidebar
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 8)
+        buttonCorner.Parent = button
+        
+        -- Padding
+        local padding = Instance.new("UIPadding")
+        padding.PaddingLeft = UDim.new(0, 15)
+        padding.Parent = button
+        
+        -- Efeitos hover
+        button.MouseEnter:Connect(function()
+            createTween(button, {BackgroundColor3 = Color3.fromRGB(255, 215, 0, 0.1)}):Play()
+        end)
+        
+        button.MouseLeave:Connect(function()
+            createTween(button, {BackgroundColor3 = Color3.fromRGB(255, 255, 255, 0.05)}):Play()
+        end)
+        
+        button.MouseButton1Click:Connect(callback)
+        
+        return button
+    end
+    
+    -- Função para criar cards de script
+    local function createScriptCard(scriptData, position)
+        local card = Instance.new("Frame")
+        card.Name = scriptData.name .. "Card"
+        card.Size = UDim2.new(0, 250, 0, 120)
+        card.Position = position
+        card.BackgroundColor3 = Color3.fromRGB(255, 255, 255, 0.05)
+        card.BorderSizePixel = 0
+        card.Parent = contentArea
+        
+        local cardCorner = Instance.new("UICorner")
+        cardCorner.CornerRadius = UDim.new(0, 10)
+        cardCorner.Parent = card
+        
+        -- Título do script
+        local scriptTitle = Instance.new("TextLabel")
+        scriptTitle.Name = "ScriptTitle"
+        scriptTitle.Size = UDim2.new(1, -20, 0, 30)
+        scriptTitle.Position = UDim2.new(0, 10, 0, 10)
+        scriptTitle.BackgroundTransparency = 1
+        scriptTitle.Text = scriptData.name
+        scriptTitle.TextColor3 = config.mainColor
+        scriptTitle.TextSize = 18
+        scriptTitle.Font = Enum.Font.GothamBold
+        scriptTitle.TextXAlignment = Enum.TextXAlignment.Left
+        scriptTitle.Parent = card
+        
+        -- Descrição
+        local scriptDesc = Instance.new("TextLabel")
+        scriptDesc.Name = "ScriptDesc"
+        scriptDesc.Size = UDim2.new(1, -20, 0, 25)
+        scriptDesc.Position = UDim2.new(0, 10, 0, 35)
+        scriptDesc.BackgroundTransparency = 1
+        scriptDesc.Text = scriptData.desc
+        scriptDesc.TextColor3 = Color3.fromRGB(200, 200, 200)
+        scriptDesc.TextSize = 14
+        scriptDesc.Font = Enum.Font.Gotham
+        scriptDesc.TextXAlignment = Enum.TextXAlignment.Left
+        scriptDesc.TextWrapped = true
+        scriptDesc.Parent = card
+        
+        -- Badge Premium
+        if scriptData.premium then
+            local premiumBadge = Instance.new("TextLabel")
+            premiumBadge.Name = "PremiumBadge"
+            premiumBadge.Size = UDim2.new(0, 80, 0, 20)
+            premiumBadge.Position = UDim2.new(1, -90, 0, 10)
+            premiumBadge.BackgroundColor3 = config.mainColor
+            premiumBadge.Text = "PREMIUM"
+            premiumBadge.TextColor3 = Color3.fromRGB(0, 0, 0)
+            premiumBadge.TextSize = 10
+            premiumBadge.Font = Enum.Font.GothamBold
+            premiumBadge.Parent = card
+            
+            local badgeCorner = Instance.new("UICorner")
+            badgeCorner.CornerRadius = UDim.new(0, 10)
+            badgeCorner.Parent = premiumBadge
+        end
+        
+        -- Botão Executar
+        local executeButton = Instance.new("TextButton")
+        executeButton.Name = "ExecuteButton"
+        executeButton.Size = UDim2.new(0, 100, 0, 30)
+        executeButton.Position = UDim2.new(0, 10, 1, -40)
+        executeButton.BackgroundColor3 = config.mainColor
+        executeButton.Text = "Executar"
+        executeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+        executeButton.TextSize = 14
+        executeButton.Font = Enum.Font.GothamBold
+        executeButton.BorderSizePixel = 0
+        executeButton.Parent = card
+        
+        local executeCorner = Instance.new("UICorner")
+        executeCorner.CornerRadius = UDim.new(0, 6)
+        executeCorner.Parent = executeButton
+        
+        -- Botão Configurar
+        local configButton = Instance.new("TextButton")
+        configButton.Name = "ConfigButton"
+        configButton.Size = UDim2.new(0, 80, 0, 30)
+        configButton.Position = UDim2.new(0, 120, 1, -40)
+        configButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255, 0.1)
+        configButton.Text = "Config"
+        configButton.TextColor3 = config.textColor
+        configButton.TextSize = 14
+        configButton.Font = Enum.Font.Gotham
+        configButton.BorderSizePixel = 0
+        configButton.Parent = card
+        
+        local configCorner = Instance.new("UICorner")
+        configCorner.CornerRadius = UDim.new(0, 6)
+        configCorner.Parent = configButton
+        
+        -- Efeitos dos botões
+        executeButton.MouseButton1Click:Connect(function()
+            spawn(function()
+                createNotification("Executando " .. scriptData.name .. "...", 2)
+                wait(1)
+                createNotification(scriptData.name .. " executado com sucesso!", 3)
+            end)
+            
+            -- Aqui você adicionaria a lógica do script
+            print("Executando:", scriptData.name)
+        end)
+        
+        configButton.MouseButton1Click:Connect(function()
+            createNotification("Abrindo configurações...", 2)
+            print("Configurando:", scriptData.name)
+        end)
+        
+        -- Efeito hover no card
+        card.MouseEnter:Connect(function()
+            createTween(card, {BackgroundColor3 = Color3.fromRGB(255, 255, 255, 0.08)}):Play()
+        end)
+        
+        card.MouseLeave:Connect(function()
+            createTween(card, {BackgroundColor3 = Color3.fromRGB(255, 255, 255, 0.05)}):Play()
+        end)
+        
+        return card
+    end
+    
+    -- Função para mostrar diferentes seções
+    local function showSection(sectionName)
+        -- Limpar área de conteúdo
+        for _, child in pairs(contentArea:GetChildren()) do
+            if child:IsA("Frame") or child:IsA("ScrollingFrame") then
+                child:Destroy()
+            end
+        end
+        
+        if sectionName == "Scripts" then
+            -- Criar grid de scripts
+            local scrollFrame = Instance.new("ScrollingFrame")
+            scrollFrame.Name = "ScriptsScroll"
+            scrollFrame.Size = UDim2.new(1, -20, 1, -20)
+            scrollFrame.Position = UDim2.new(0, 10, 0, 10)
+            scrollFrame.BackgroundTransparency = 1
+            scrollFrame.ScrollBarThickness = 6
+            scrollFrame.ScrollBarImageColor3 = config.mainColor
+            scrollFrame.Parent = contentArea
+            
+            local gridLayout = Instance.new("UIGridLayout")
+            gridLayout.CellSize = UDim2.new(0, 250, 0, 120)
+            gridLayout.CellPadding = UDim2.new(0, 15, 0, 15)
+            gridLayout.Parent = scrollFrame
+            
+            -- Criar cards para cada script
+            for i, scriptData in ipairs(scriptsData) do
+                local card = createScriptCard(scriptData, UDim2.new(0, 0, 0, 0))
+                card.Parent = scrollFrame
+            end
+            
+            -- Ajustar tamanho do scroll
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, math.ceil(#scriptsData / 2) * 135)
+            
+        elseif sectionName == "Dashboard" then
+            -- Criar dashboard com estatísticas
+            local statsFrame = Instance.new("Frame")
+            statsFrame.Name = "StatsFrame"
+            statsFrame.Size = UDim2.new(1, -20, 0, 150)
+            statsFrame.Position = UDim2.new(0, 10, 0, 10)
+            statsFrame.BackgroundTransparency = 1
+            statsFrame.Parent = contentArea
+            
+            local statsLayout = Instance.new("UIGridLayout")
+            statsLayout.CellSize = UDim2.new(0, 140, 0, 70)
+            statsLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+            statsLayout.Parent = statsFrame
+            
+            local stats = {
+                {title = "Scripts Ativos", value = "42", icon = "📜"},
+                {title = "Execuções", value = "1,337", icon = "⚡"},
+                {title = "Uptime", value = "99.9%", icon = "⏱️"},
+                {title = "Usuários", value = "10K+", icon = "👥"}
+            }
+            
+            for _, stat in ipairs(stats) do
+                local statCard = Instance.new("Frame")
+                statCard.BackgroundColor3 = Color3.fromRGB(255, 255, 255, 0.05)
+                statCard.BorderSizePixel = 0
+                statCard.Parent = statsFrame
+                
+                local statCorner = Instance.new("UICorner")
+                statCorner.CornerRadius = UDim.new(0, 8)
+                statCorner.Parent = statCard
+                
+                local iconLabel = Instance.new("TextLabel")
+                iconLabel.Size = UDim2.new(0, 30, 0, 30)
+                iconLabel.Position = UDim2.new(0, 10, 0, 5)
+                iconLabel.BackgroundTransparency = 1
+                iconLabel.Text = stat.icon
+                iconLabel.TextSize = 20
+                iconLabel.Parent = statCard
+                
+                local valueLabel = Instance.new("TextLabel")
+                valueLabel.Size = UDim2.new(1, -50, 0, 25)
+                valueLabel.Position = UDim2.new(0, 45, 0, 5)
+                valueLabel.BackgroundTransparency = 1
+                valueLabel.Text = stat.value
+                valueLabel.TextColor3 = config.mainColor
+                valueLabel.TextSize = 18
+                valueLabel.Font = Enum.Font.GothamBold
+                valueLabel.TextXAlignment = Enum.TextXAlignment.Left
+                valueLabel.Parent = statCard
+                
+                local titleLabel = Instance.new("TextLabel")
+                titleLabel.Size = UDim2.new(1, -10, 0, 20)
+                titleLabel.Position = UDim2.new(0, 10, 1, -25)
+                titleLabel.BackgroundTransparency = 1
+                titleLabel.Text = stat.title
+                titleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+                titleLabel.TextSize = 12
+                titleLabel.Font = Enum.Font.Gotham
+                titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                titleLabel.Parent = statCard
+            end
+        end
+        
+        createNotification("Seção " .. sectionName .. " carregada!", 2)
+    end
+    
+    -- Criar botões da sidebar
+    createSidebarButton("Dashboard", "🏠", 20, function() showSection("Dashboard") end)
+    createSidebarButton("Scripts", "📜", 75, function() showSection("Scripts") end)
+    createSidebarButton("Executor", "⚡", 130, function() showSection("Executor") end)
+    createSidebarButton("Configurações", "⚙️", 185, function() showSection("Configurações") end)
+    createSidebarButton("Sobre", "ℹ️", 240, function() showSection("Sobre") end)
+    
+    -- Funcionalidade do botão fechar
+    closeButton.MouseButton1Click:Connect(function()
+        createTween(container, {Size = UDim2.new(0, 0, 0, 0)}):Play()
+        wait(0.3)
+        mainFrame:Destroy()
+    end)
+    
+    -- Tornar o GUI arrastável
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = container.Position
+        end
+    end)
+    
+    topBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            container.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, 
+                                         startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    -- Animação de entrada
+    container.Size = UDim2.new(0, 0, 0, 0)
+    createTween(container, {Size = UDim2.new(0, 800, 0, 600)}, 0.5):Play()
+    
+    -- Carregar dashboard por padrão
+    wait(0.5)
+    showSection("Dashboard")
+    
+    return mainFrame
+end
+
+-- Função principal para inicializar o script
+local function initializeBananaCat()
+    print("❄️ Neon Hub Scripts v" .. config.version .. " - Inicializando...")
+    
+    -- Criar notificação de boas-vindas
+    spawn(function()
+        wait(1)
+        createNotification("Bem-vindo ao ❄️ Neon Hub!", 4)
+    end)
+    
+    -- Criar interface principal
+    local gui = createMainGUI()
+    
+    print("❄️ Neon Hub carregado com sucesso!")
+    
+    return gui
+end
+
+-- Comando para abrir/fechar o painel
+local function toggleGUI()
+    if playerGui:FindFirstChild("NeonHubGUI") then
+        playerGui.NeonHubGUI:Destroy()
+        createNotification("Painel fechado!", 2)
+    else
+        initializeBananaCat()
+    end
+end
+
+-- Atalho de teclado (Insert para abrir/fechar)
+UserInputService.InputBegan:Connect(function(key, gameProcessed)
+    if not gameProcessed and key.KeyCode == Enum.KeyCode.Insert then
+        toggleGUI()
+    end
+end)
+
+-- Inicializar automaticamente
+initializeBananaCat()
+
+-- Exportar funções principais
+return {
+    initialize = initializeBananaCat,
+    toggle = toggleGUI,
+    config = config
+}
