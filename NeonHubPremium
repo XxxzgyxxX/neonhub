@@ -1,0 +1,357 @@
+--[[
+    💎 NEON HUB PREMIUM | BLOX FRUITS
+    👑 Criador: XxxzgyxxX
+    🔗 Discord: discord.gg/neonhub
+    📌 Versão: 4.0 (Mobile/Delta Compatível)
+    🚀 Executor: Delta
+]]
+
+-- Carregamento seguro da UI
+local success, Library = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+end)
+if not success then
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Neon Hub";
+        Text = "Falha ao carregar a biblioteca UI";
+        Duration = 5;
+    })
+    return
+end
+
+-- Configuração do Tema Premium
+local Theme = {
+    SchemeColor = Color3.fromRGB(0, 100, 200),
+    Background = Color3.fromRGB(5, 15, 30),
+    Header = Color3.fromRGB(0, 50, 100),
+    TextColor = Color3.fromRGB(255, 255, 255),
+    SubTextColor = Color3.fromRGB(180, 180, 180),
+    ElementColor = Color3.fromRGB(0, 80, 160),
+    GlowColor = Color3.fromRGB(0, 150, 255)
+}
+
+-- Criação da Janela Premium
+local Window = Library.CreateLib("NEON HUB PREMIUM", Theme)
+
+-- Serviços essenciais
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local VirtualInput = game:GetService("VirtualInputManager")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Variáveis de controle
+local AutoFarm = false
+local AutoClick = false
+local AutoBoss = false
+local AutoElite = false
+local AutoKen = false
+local AutoHaki = false
+local AutoObservation = false
+local AutoBuso = false
+local Noclip = false
+local InfJump = false
+local AntiAfk = true
+local ToggleUIKey = Enum.KeyCode.RightControl
+local IsMobile = UserInputService.TouchEnabled
+local CurrentTarget = nil
+local PlayerStats = {
+    Melee = 0,
+    Defense = 0,
+    Sword = 0,
+    Gun = 0,
+    Fruit = 0
+}
+
+-- Funções essenciais
+function SafeWait(duration)
+    local start = tick()
+    repeat RunService.Heartbeat:Wait() until tick() - start >= duration
+end
+
+function GetCharacter()
+    local Character = LocalPlayer.Character
+    if not Character then
+        LocalPlayer.CharacterAdded:Wait()
+        Character = LocalPlayer.Character
+    end
+    return Character
+end
+
+function GetHumanoid()
+    local Character = GetCharacter()
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if not Humanoid or Humanoid.Health <= 0 then return nil end
+    return Humanoid
+end
+
+function GetHRP()
+    local Character = GetCharacter()
+    local HRP = Character:FindFirstChild("HumanoidRootPart")
+    if not HRP then
+        repeat RunService.Heartbeat:Wait() until Character:FindFirstChild("HumanoidRootPart")
+        HRP = Character:FindFirstChild("HumanoidRootPart")
+    end
+    return HRP
+end
+
+-- Sistema de busca de alvos otimizado
+function GetClosestEnemy(maxDistance)
+    local Character = GetCharacter()
+    local HRP = GetHRP()
+    if not HRP then return nil end
+    
+    local closestEnemy = nil
+    local shortestDistance = maxDistance or math.huge
+    
+    for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+        if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
+            local distance = (HRP.Position - enemy.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closestEnemy = enemy
+            end
+        end
+    end
+    
+    return closestEnemy
+end
+
+-- Sistema de combate completo
+function AttackTarget(target)
+    if not target or not target:FindFirstChild("HumanoidRootPart") then return end
+    
+    local Character = GetCharacter()
+    local HRP = GetHRP()
+    local Humanoid = GetHumanoid()
+    if not Humanoid then return end
+    
+    -- Teleporte suave até o alvo
+    local tweenInfo = TweenInfo.new(
+        (HRP.Position - target.HumanoidRootPart.Position).Magnitude / 300,
+        Enum.EasingStyle.Linear
+    )
+    
+    local tween = TweenService:Create(
+        HRP,
+        tweenInfo,
+        {CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 0, IsMobile and 5 or 8)}
+    )
+    
+    tween:Play()
+    tween.Completed:Wait()
+    
+    -- Ataque automático
+    if AutoClick then
+        for i = 1, 3 do -- Multi-hit para mobile
+            VirtualInput:SendKeyEvent(true, "X", false, game)
+            SafeWait(0.1)
+            VirtualInput:SendKeyEvent(false, "X", false, game)
+            SafeWait(0.2)
+        end
+    end
+end
+
+-- Sistemas de farm automatizados
+function AutoFarmRoutine()
+    while AutoFarm and task.wait() do
+        pcall(function()
+            local enemy = GetClosestEnemy(2000)
+            if enemy then
+                AttackTarget(enemy)
+            end
+        end)
+    end
+end
+
+function AutoBossRoutine()
+    local bossList = {
+        "Darkbeard", "Dough King", "Cursed Captain", 
+        "Swan", "Don Swan", "Cake Prince"
+    }
+    
+    while AutoBoss and task.wait(1) do
+        pcall(function()
+            for _, bossName in pairs(bossList) do
+                local boss = Workspace.Enemies:FindFirstChild(bossName)
+                if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                    AttackTarget(boss)
+                    break
+                end
+            end
+        end)
+    end
+end
+
+-- Sistema de habilidades automáticas
+function AutoKenRoutine()
+    while AutoKen and task.wait(5) do
+        pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ActivateKen")
+        end)
+    end
+end
+
+-- Sistema de estatísticas
+function UpdatePlayerStats()
+    while task.wait(5) do
+        pcall(function()
+            local stats = {
+                Melee = LocalPlayer:WaitForChild("Data"):WaitForChild("Melee").Value,
+                Defense = LocalPlayer:WaitForChild("Data"):WaitForChild("Defense").Value,
+                Sword = LocalPlayer:WaitForChild("Data"):WaitForChild("Sword").Value,
+                Gun = LocalPlayer:WaitForChild("Data"):WaitForChild("Gun").Value,
+                Fruit = LocalPlayer:WaitForChild("Data"):WaitForChild("Fruit").Value
+            }
+            PlayerStats = stats
+        end)
+    end
+end
+
+-- Interface Premium
+local MainTab = Window:NewTab("🏠 Principal")
+local CombatTab = Window:NewTab("⚔️ Combate")
+local FarmTab = Window:NewTab("🌾 Farm")
+local PlayerTab = Window:NewTab("👤 Jogador")
+local TeleportTab = Window:NewTab("📍 Teleportes")
+local SettingsTab = Window:NewTab("⚙️ Configurações")
+
+-- Seções principais
+local MainSection = MainTab:NewSection("🔧 Funções Principais")
+local CombatSection = CombatTab:NewSection("🎯 Habilidades")
+local AutoFarmSection = FarmTab:NewSection("🤖 Farm Automático")
+local BossSection = FarmTab:NewSection("👑 Bosses")
+local PlayerControls = PlayerTab:NewSection("🎮 Controles")
+local StatsSection = PlayerTab:NewSection("📊 Estatísticas")
+local IslandSection = TeleportTab:NewSection("🏝️ Ilhas")
+local UISettings = SettingsTab:NewSection("🎨 Configurações UI")
+
+-- Elementos da UI
+MainSection:NewToggle("✅ Auto Farm", "Farm automático de inimigos", function(state)
+    AutoFarm = state
+    if state then
+        coroutine.wrap(AutoFarmRoutine)()
+        Library:Notify("Auto Farm ATIVADO", 3)
+    else
+        Library:Notify("Auto Farm DESATIVADO", 3)
+    end
+end)
+
+MainSection:NewToggle("🖱️ Auto Click", "Ataque automático", function(state)
+    AutoClick = state
+    Library:Notify(state and "Auto Click ATIVADO" or "Auto Click DESATIVADO", 3)
+end)
+
+BossSection:NewToggle("👑 Farm Bosses", "Farm automático de bosses", function(state)
+    AutoBoss = state
+    if state then
+        coroutine.wrap(AutoBossRoutine)()
+        Library:Notify("Farm de Bosses ATIVADO", 3)
+    else
+        Library:Notify("Farm de Bosses DESATIVADO", 3)
+    end
+end)
+
+CombatSection:NewToggle("🌀 Auto Ken", "Ativa Ken automaticamente", function(state)
+    AutoKen = state
+    if state then
+        coroutine.wrap(AutoKenRoutine)()
+        Library:Notify("Auto Ken ATIVADO", 3)
+    else
+        Library:Notify("Auto Ken DESATIVADO", 3)
+    end
+end)
+
+-- Sistema de teleportes
+local islandLocations = {
+    ["Primeiro Mundo"] = CFrame.new(1000, 100, 1000),
+    ["Segundo Mundo"] = CFrame.new(-1000, 100, -1000),
+    ["Terceiro Mundo"] = CFrame.new(5000, 100, 5000),
+    ["Ilha do Coliseu"] = CFrame.new(1500, 100, 1500)
+}
+
+for islandName, islandCFrame in pairs(islandLocations) do
+    IslandSection:NewButton(islandName, "Teleporta para "..islandName, function()
+        pcall(function()
+            TweenService:Create(
+                GetHRP(),
+                TweenInfo.new(5, Enum.EasingStyle.Linear),
+                {CFrame = islandCFrame}
+            ):Play()
+            Library:Notify("Teleportando para "..islandName, 3)
+        end)
+    end)
+end
+
+-- Configurações do jogador
+PlayerControls:NewSlider("🚶 Velocidade", "Ajusta sua velocidade", 500, 16, function(value)
+    pcall(function()
+        GetHumanoid().WalkSpeed = value
+    end)
+end)
+
+PlayerControls:NewSlider("🦘 Pulo", "Ajusta altura do pulo", 350, 50, function(value)
+    pcall(function()
+        GetHumanoid().JumpPower = value
+    end)
+end)
+
+PlayerControls:NewToggle("✈️ NoClip", "Ativa/Desativa NoClip", function(state)
+    Noclip = state
+    Library:Notify(state and "NoClip ATIVADO" or "NoClip DESATIVADO", 3)
+end)
+
+-- Sistema Anti-AFK
+if AntiAfk then
+    coroutine.wrap(function()
+        while task.wait(30) do
+            pcall(function()
+                game:GetService("VirtualUser"):CaptureController()
+                game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+            end)
+        end
+    end)()
+end
+
+-- NoClip permanente
+RunService.Stepped:Connect(function()
+    if Noclip then
+        pcall(function()
+            for _, part in pairs(GetCharacter():GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end)
+    end
+end)
+
+-- Pulo infinito para mobile
+if IsMobile then
+    UserInputService.JumpRequest:Connect(function()
+        if InfJump then
+            pcall(function()
+                GetHumanoid():ChangeState(Enum.HumanoidStateType.Jumping)
+            end)
+        end
+    end)
+end
+
+-- Atualização de estatísticas
+coroutine.wrap(UpdatePlayerStats)()
+
+-- Configurações finais da UI
+UISettings:NewKeybind("🔘 Toggle UI", "Abre/Fecha a Interface", ToggleUIKey, function()
+    Window:ToggleUI()
+end)
+
+UISettings:NewButton("❌ Fechar Hub", "Remove a UI completamente", function()
+    Window:Destroy()
+end)
+
+-- Inicialização
+Library:Notify("NEON HUB PREMIUM CARREGADO!", 5)
+Library:Notify("Pressione RightControl para abrir/fechar", 5)
