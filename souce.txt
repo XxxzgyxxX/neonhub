@@ -1,13 +1,3 @@
-
---[[
-    ╔═══════════════════════════════════════════════════════════════╗
-    ║                      NEON HUB V2                             ║
-    ║                    Clone do Redz Hub                         ║
-    ║              Script Completo para Blox Fruits                ║
-    ║                   By XzgyX - 2025                            ║
-    ╚═══════════════════════════════════════════════════════════════╝
-]]
-
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
