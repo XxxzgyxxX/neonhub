@@ -1,0 +1,787 @@
+--[[
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                         NEON HUB PREMIUM                     ║
+    ║                    By _XzgyX_                                 ║
+    ║              Professional Blox Fruits Script                  ║
+    ║                      Version 3.0                             ║
+    ╚═══════════════════════════════════════════════════════════════╝
+]]
+
+-- Services
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local HttpService = game:GetService("HttpService")
+local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
+local TeleportService = game:GetService("TeleportService")
+local VirtualUser = game:GetService("VirtualUser")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local mouse = player:GetMouse()
+
+-- Verificar se o script já está rodando
+if playerGui:FindFirstChild("NeonHubPremium") then
+    playerGui.NeonHubPremium:Destroy()
+end
+
+-- Variables globais
+local NeonHub = {}
+NeonHub.Enabled = true
+NeonHub.CurrentTab = "AutoFarm"
+
+-- Settings completas
+NeonHub.Settings = {
+    -- Auto Farm
+    AutoFarmLevel = false,
+    AutoFarmNearest = false,
+    AutoFarmBone = false,
+    AutoFarmCake = false,
+    AutoFarmElite = false,
+    AutoFarmRipIndra = false,
+    AutoFarmSoul = false,
+    AutoFarmEctoplasm = false,
+    AutoFarmDarkbeard = false,
+    AutoFarmSwan = false,
+    AutoFarmDoughKing = false,
+    AutoFarmPiranha = false,
+    AutoFarmTerror = false,
+    AutoFarmLeviathan = false,
+    AutoFarmKitsune = false,
+    AutoFarmSeaBeast = false,
+
+    -- Combat & Abilities
+    FastAttack = false,
+    BringMobs = false,
+    AutoKen = false,
+    AutoBuso = false,
+    AutoGeppo = false,
+    AutoSoru = false,
+    AutoTekkai = false,
+    AutoShigan = false,
+    AutoRengoku = false,
+    AutoEnma = false,
+    AutoYama = false,
+    InfAbility = false,
+    AutoSoulGuitar = false,
+    KillAura = false,
+
+    -- Stats & Mastery
+    AutoStats = false,
+    SelectedStats = "Melee",
+    AutoMastery = false,
+    AutoMasteryGun = false,
+    AutoMasterySword = false,
+    AutoMasteryFruit = false,
+
+    -- Devil Fruits
+    AutoDevilFruit = false,
+    AutoEatFruit = false,
+    AutoStoreFruit = false,
+    AutoRandomFruit = false,
+    FarmAllFruits = false,
+    AutoAwaken = false,
+
+    -- Race V4 & Mirage
+    AutoRaceV4 = false,
+    AutoTemple = false,
+    AutoPuzzle = false,
+    AutoTrial = false,
+    AutoGear = false,
+    AutoAncientOne = false,
+    AutoMirage = false,
+
+    -- Sea Events
+    AutoSeaBeast = false,
+    AutoShip = false,
+    AutoFishmanRaid = false,
+    AutoPirateSail = false,
+    AutoSeaKing = false,
+
+    -- Raids
+    AutoRaid = false,
+    AutoAdvancedRaid = false,
+    AutoSelectRaid = false,
+    AutoStartRaid = false,
+    AutoKillAura = false,
+    AutoNextIsland = false,
+    AutoBuyRaidChip = false,
+
+    -- Premium Weapons
+    AutoCDK = false,
+    AutoSoulGuitar = false,
+    AutoYama = false,
+    AutoTushita = false,
+    AutoShisui = false,
+    AutoWarden = false,
+    AutoRengoku = false,
+    AutoSaber = false,
+    AutoPole = false,
+    AutoBizarre = false,
+    AutoSpikeyTrident = false,
+    AutoTrident = false,
+    AutoKabucha = false,
+    AutoMidnight = false,
+    AutoShark = false,
+    AutoDarkDagger = false,
+    AutoTwinHooks = false,
+    AutoHallow = false,
+
+    -- Fighting Styles
+    AutoSuperhuman = false,
+    AutoDeathStep = false,
+    AutoSharkmanKarate = false,
+    AutoElectricClaw = false,
+    AutoDragonClaw = false,
+    AutoGodHuman = false,
+    AutoSanguineArt = false,
+    AutoDragonTalon = false,
+
+    -- ESP & Visuals
+    ESPPlayer = false,
+    ESPChest = false,
+    ESPFruit = false,
+    ESPFlower = false,
+    ESPIsland = false,
+    ESPMonster = false,
+    ESPShip = false,
+    ESPLines = false,
+    ESPDistance = true,
+    ESPHealth = true,
+
+    -- Movement
+    WalkSpeed = 16,
+    JumpPower = 50,
+    NoClip = false,
+    InfEnergy = false,
+    AutoTPFruit = false,
+    AutoTPChest = false,
+
+    -- Misc
+    AutoRejoin = false,
+    AntiAFK = true,
+    RemoveNotifications = false,
+    WhiteScreen = false,
+    FpsBooster = false,
+    DeleteTextures = false,
+    DeleteEffects = false,
+
+    -- Auto Buy
+    AutoBuyLegendarySword = false,
+    AutoBuyEnchancement = false,
+    AutoBuyDevilFruit = false,
+    AutoBuyAbilities = false,
+    AutoBuyHaki = false,
+    AutoBuyFightingStyle = false,
+
+    -- Farm Settings
+    FarmDistance = 20,
+    SafeDistance = 30
+}
+
+-- World Detection
+local World1 = game.PlaceId == 2753915549
+local World2 = game.PlaceId == 4442272183
+local World3 = game.PlaceId == 7449423635
+
+-- Anti AFK System
+if NeonHub.Settings.AntiAFK then
+    player.Idled:Connect(function()
+        VirtualUser:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+        wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    end)
+end
+
+-- Fast Attack System (Compatível com KRNL Mobile)
+local function FastAttack()
+    if NeonHub.Settings.FastAttack then
+        pcall(function()
+            local CombatFramework = require(player.PlayerScripts:WaitForChild("CombatFramework"))
+            local CombatFrameworkR = getupvalues(CombatFramework)[2]
+            for i, v in pairs(CombatFrameworkR.activeController.data) do
+                if v.active then
+                    if v.timeToNextAttack > 0 then
+                        v.timeToNextAttack = 0
+                    end
+                    if v.hitboxMagnitude ~= 55 then
+                        v.hitboxMagnitude = 55
+                    end
+                end
+            end
+        end)
+    end
+end
+
+-- Quest System
+local function GetQuest()
+    local MyLevel = player.Data.Level.Value
+
+    if World1 then
+        if MyLevel == 1 or MyLevel <= 9 then
+            Ms = "Bandit [Lv. 5]"
+            NaemQuest = "BanditQuest1"
+            LevelQuest = 1
+            NameMon = "Bandit"
+            CFrameQuest = CFrame.new(1059.37195, 15.4495068, 1550.4231)
+            CFrameMon = CFrame.new(1045.962646484375, 27.00250816345215, 1560.8203125)
+        elseif MyLevel == 10 or MyLevel <= 14 then
+            Ms = "Monkey [Lv. 14]"
+            NaemQuest = "JungleQuest"
+            LevelQuest = 1
+            NameMon = "Monkey"
+            CFrameQuest = CFrame.new(-1598.08911, 35.5501175, 153.377838)
+            CFrameMon = CFrame.new(-1448.51806640625, 67.85301208496094, 11.46579647064209)
+        else
+            Ms = "Bandit [Lv. 5]"
+            NaemQuest = "BanditQuest1"
+            LevelQuest = 1
+            NameMon = "Bandit"
+            CFrameQuest = CFrame.new(1059.37195, 15.4495068, 1550.4231)
+            CFrameMon = CFrame.new(1045.962646484375, 27.00250816345215, 1560.8203125)
+        end
+    end
+end
+
+-- Auto Farm Function
+local function AutoFarmLevel()
+    while NeonHub.Settings.AutoFarmLevel do
+        wait()
+        pcall(function()
+            GetQuest()
+            if not player.PlayerGui.Main.Quest.Visible or not string.find(player.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NaemQuest, LevelQuest)
+            end
+
+            for _, v in pairs(Workspace.Enemies:GetChildren()) do
+                if v.Name == Ms and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                    repeat
+                        wait()
+                        if NeonHub.Settings.BringMobs then
+                            v.HumanoidRootPart.CanCollide = false
+                            v.HumanoidRootPart.Size = Vector3.new(50,50,50)
+                            v.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+                        end
+                        if NeonHub.Settings.FastAttack then
+                            pcall(function()
+                                game:GetService("VirtualUser"):CaptureController()
+                                game:GetService("VirtualUser"):Button1Down(Vector2.new(851, 158))
+                            end)
+                        end
+                        player.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, NeonHub.Settings.FarmDistance, 0)
+                    until not NeonHub.Settings.AutoFarmLevel or v.Humanoid.Health <= 0
+                end
+            end
+        end)
+    end
+end
+
+-- Auto Stats Function
+local function AutoStats()
+    while NeonHub.Settings.AutoStats do
+        wait()
+        pcall(function()
+            if NeonHub.Settings.SelectedStats == "Melee" then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", 1)
+            elseif NeonHub.Settings.SelectedStats == "Defense" then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Defense", 1)
+            elseif NeonHub.Settings.SelectedStats == "Sword" then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Sword", 1)
+            elseif NeonHub.Settings.SelectedStats == "Gun" then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Gun", 1)
+            elseif NeonHub.Settings.SelectedStats == "Blox Fruit" then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", 1)
+            end
+        end)
+    end
+end
+
+-- Função para criar toggles modernos (Compatível com KRNL Mobile)
+local function CreateToggle(parent, text, position, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Name = text .. "Toggle"
+    Frame.Size = UDim2.new(1, -20, 0, 40)
+    Frame.Position = position
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 35, 45)
+    Frame.BorderSizePixel = 0
+    Frame.Parent = parent
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Frame
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -80, 1, 0)
+    Label.Position = UDim2.new(0, 15, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    Label.TextSize = 14
+    Label.Font = Enum.Font.Gotham
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(0, 50, 0, 25)
+    ToggleFrame.Position = UDim2.new(1, -65, 0.5, -12.5)
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    ToggleFrame.BorderSizePixel = 0
+    ToggleFrame.Parent = Frame
+
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 12)
+    ToggleCorner.Parent = ToggleFrame
+
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0, 21, 0, 21)
+    ToggleButton.Position = UDim2.new(0, 2, 0, 2)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    ToggleButton.Text = ""
+    ToggleButton.Parent = ToggleFrame
+
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 10)
+    ButtonCorner.Parent = ToggleButton
+
+    local enabled = false
+
+    ToggleButton.MouseButton1Click:Connect(function()
+        enabled = not enabled
+
+        if enabled then
+            ToggleFrame.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
+            ToggleButton.Position = UDim2.new(0, 27, 0, 2)
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        else
+            ToggleFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            ToggleButton.Position = UDim2.new(0, 2, 0, 2)
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+        end
+
+        callback(enabled)
+    end)
+
+    return Frame
+end
+
+-- Função para criar botões modernos
+local function CreateButton(parent, text, position, callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = text .. "Button"
+    Button.Size = UDim2.new(1, -20, 0, 35)
+    Button.Position = position
+    Button.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    Button.Text = text
+    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.TextSize = 14
+    Button.Font = Enum.Font.GothamBold
+    Button.BorderSizePixel = 0
+    Button.Parent = parent
+
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = Button
+
+    Button.MouseButton1Click:Connect(function()
+        pcall(callback)
+    end)
+
+    return Button
+end
+
+-- Sistema de GUI Profissional (Compatível com KRNL Mobile)
+local function CreateNeonGUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "NeonHubPremium"
+    ScreenGui.Parent = playerGui
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    -- Frame principal moderno
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 700, 0, 500)
+    MainFrame.Position = UDim2.new(0.5, -350, 0.5, -250)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    MainFrame.Parent = ScreenGui
+
+    -- Corner arredondado
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 15)
+    MainCorner.Parent = MainFrame
+
+    -- Header moderno
+    local Header = Instance.new("Frame")
+    Header.Name = "Header"
+    Header.Size = UDim2.new(1, 0, 0, 60)
+    Header.Position = UDim2.new(0, 0, 0, 0)
+    Header.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
+    Header.BorderSizePixel = 0
+    Header.Parent = MainFrame
+
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 15)
+    HeaderCorner.Parent = Header
+
+    -- Logo/Título
+    local Title = Instance.new("TextLabel")
+    Title.Name = "Title"
+    Title.Size = UDim2.new(0, 200, 0, 30)
+    Title.Position = UDim2.new(0, 20, 0, 10)
+    Title.BackgroundTransparency = 1
+    Title.Text = "NEON HUB"
+    Title.TextColor3 = Color3.fromRGB(0, 255, 150)
+    Title.TextSize = 22
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Header
+
+    local Subtitle = Instance.new("TextLabel")
+    Subtitle.Name = "Subtitle"
+    Subtitle.Size = UDim2.new(0, 300, 0, 20)
+    Subtitle.Position = UDim2.new(0, 20, 0, 35)
+    Subtitle.BackgroundTransparency = 1
+    Subtitle.Text = "By _XzgyX_ • KRNL Mobile Compatible"
+    Subtitle.TextColor3 = Color3.fromRGB(150, 150, 150)
+    Subtitle.TextSize = 11
+    Subtitle.Font = Enum.Font.Gotham
+    Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    Subtitle.Parent = Header
+
+    -- Status Online
+    local StatusFrame = Instance.new("Frame")
+    StatusFrame.Name = "StatusFrame"
+    StatusFrame.Size = UDim2.new(0, 80, 0, 25)
+    StatusFrame.Position = UDim2.new(1, -100, 0, 10)
+    StatusFrame.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+    StatusFrame.BorderSizePixel = 0
+    StatusFrame.Parent = Header
+
+    local StatusCorner = Instance.new("UICorner")
+    StatusCorner.CornerRadius = UDim.new(0, 12)
+    StatusCorner.Parent = StatusFrame
+
+    local StatusText = Instance.new("TextLabel")
+    StatusText.Name = "StatusText"
+    StatusText.Size = UDim2.new(1, 0, 1, 0)
+    StatusText.BackgroundTransparency = 1
+    StatusText.Text = "ONLINE"
+    StatusText.TextColor3 = Color3.new(1, 1, 1)
+    StatusText.TextSize = 10
+    StatusText.Font = Enum.Font.GothamBold
+    StatusText.Parent = StatusFrame
+
+    -- Botão fechar
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Position = UDim2.new(1, -40, 0, 35)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.new(1, 1, 1)
+    CloseButton.TextSize = 16
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Parent = Header
+
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 6)
+    CloseCorner.Parent = CloseButton
+
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    -- Barra lateral de navegação
+    local SideNav = Instance.new("Frame")
+    SideNav.Name = "SideNav"
+    SideNav.Size = UDim2.new(0, 180, 1, -70)
+    SideNav.Position = UDim2.new(0, 10, 0, 70)
+    SideNav.BackgroundColor3 = Color3.fromRGB(25, 30, 40)
+    SideNav.BorderSizePixel = 0
+    SideNav.Parent = MainFrame
+
+    local SideNavCorner = Instance.new("UICorner")
+    SideNavCorner.CornerRadius = UDim.new(0, 10)
+    SideNavCorner.Parent = SideNav
+
+    -- Conteúdo principal
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "ContentFrame"
+    ContentFrame.Size = UDim2.new(0, 490, 1, -70)
+    ContentFrame.Position = UDim2.new(0, 200, 0, 70)
+    ContentFrame.BackgroundColor3 = Color3.fromRGB(30, 35, 45)
+    ContentFrame.BorderSizePixel = 0
+    ContentFrame.Parent = MainFrame
+
+    local ContentCorner = Instance.new("UICorner")
+    ContentCorner.CornerRadius = UDim.new(0, 10)
+    ContentCorner.Parent = ContentFrame
+
+    -- ScrollingFrame para o conteúdo
+    local ScrollingFrame = Instance.new("ScrollingFrame")
+    ScrollingFrame.Name = "ScrollingFrame"
+    ScrollingFrame.Size = UDim2.new(1, -20, 1, -20)
+    ScrollingFrame.Position = UDim2.new(0, 10, 0, 10)
+    ScrollingFrame.BackgroundTransparency = 1
+    ScrollingFrame.ScrollBarThickness = 6
+    ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 150)
+    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 5, 0)
+    ScrollingFrame.Parent = ContentFrame
+
+    -- Criar abas de navegação (Simplificado para KRNL Mobile)
+    local tabs = {
+        {name = "Auto Farm", icon = "AF"},
+        {name = "Combat", icon = "CB"},
+        {name = "Player", icon = "PL"},
+        {name = "Teleport", icon = "TP"},
+        {name = "ESP", icon = "ES"},
+        {name = "Misc", icon = "MC"}
+    }
+
+    local currentTabFrame = nil
+
+    for i, tab in pairs(tabs) do
+        local TabButton = Instance.new("TextButton")
+        TabButton.Name = tab.name .. "Tab"
+        TabButton.Size = UDim2.new(1, -10, 0, 40)
+        TabButton.Position = UDim2.new(0, 5, 0, 5 + (i-1) * 45)
+        TabButton.BackgroundColor3 = Color3.fromRGB(35, 40, 50)
+        TabButton.Text = tab.icon .. " " .. tab.name
+        TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+        TabButton.TextSize = 12
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.BorderSizePixel = 0
+        TabButton.Parent = SideNav
+
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 8)
+        TabCorner.Parent = TabButton
+
+        TabButton.MouseButton1Click:Connect(function()
+            -- Resetar todas as abas
+            for _, child in pairs(SideNav:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.BackgroundColor3 = Color3.fromRGB(35, 40, 50)
+                end
+            end
+
+            -- Ativar aba atual
+            TabButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+            NeonHub.CurrentTab = tab.name
+
+            -- Limpar conteúdo anterior
+            for _, child in pairs(ScrollingFrame:GetChildren()) do
+                if child:IsA("Frame") then
+                    child:Destroy()
+                end
+            end
+
+            -- Criar conteúdo da aba
+            if tab.name == "Auto Farm" then
+                local yPos = 0
+                local spacing = 45
+
+                CreateToggle(ScrollingFrame, "Auto Farm Level", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.AutoFarmLevel = enabled
+                    if enabled then
+                        spawn(AutoFarmLevel)
+                    end
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Quest Farm", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.QuestFarm = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Boss Farm", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.BossFarm = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Sea Beast Farm", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.SeaBeastFarm = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Elite Farm", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.AutoFarmElite = enabled
+                end)
+
+            elseif tab.name == "Combat" then
+                local yPos = 0
+                local spacing = 45
+
+                CreateToggle(ScrollingFrame, "Fast Attack", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.FastAttack = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Auto Haki", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.AutoHaki = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Auto Buso", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.AutoBuso = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Auto Ken", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.AutoKen = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Bring Mobs", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.BringMobs = enabled
+                end)
+
+            elseif tab.name == "Player" then
+                local yPos = 0
+                local spacing = 45
+
+                CreateToggle(ScrollingFrame, "Fly", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.Fly = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Speed", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.Speed = enabled
+                    if enabled then
+                        if player.Character and player.Character:FindFirstChild("Humanoid") then
+                            player.Character.Humanoid.WalkSpeed = 50
+                        end
+                    else
+                        if player.Character and player.Character:FindFirstChild("Humanoid") then
+                            player.Character.Humanoid.WalkSpeed = 16
+                        end
+                    end
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "NoClip", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.NoClip = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Infinite Energy", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.InfEnergy = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Auto Stats", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.AutoStats = enabled
+                    if enabled then
+                        spawn(AutoStats)
+                    end
+                end)
+
+            elseif tab.name == "Teleport" then
+                local yPos = 0
+                local spacing = 45
+
+                CreateButton(ScrollingFrame, "First Sea", UDim2.new(0, 0, 0, yPos), function()
+                    game:GetService("TeleportService"):Teleport(2753915549, player)
+                end)
+                yPos = yPos + spacing
+
+                CreateButton(ScrollingFrame, "Second Sea", UDim2.new(0, 0, 0, yPos), function()
+                    game:GetService("TeleportService"):Teleport(4442272183, player)
+                end)
+                yPos = yPos + spacing
+
+                CreateButton(ScrollingFrame, "Third Sea", UDim2.new(0, 0, 0, yPos), function()
+                    game:GetService("TeleportService"):Teleport(7449423635, player)
+                end)
+
+            elseif tab.name == "ESP" then
+                local yPos = 0
+                local spacing = 45
+
+                CreateToggle(ScrollingFrame, "Player ESP", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.ESPPlayer = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Fruit ESP", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.ESPFruit = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Chest ESP", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.ESPChest = enabled
+                end)
+
+            elseif tab.name == "Misc" then
+                local yPos = 0
+                local spacing = 45
+
+                CreateToggle(ScrollingFrame, "Anti AFK", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.AntiAFK = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "FPS Booster", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.FpsBooster = enabled
+                end)
+                yPos = yPos + spacing
+
+                CreateToggle(ScrollingFrame, "Auto Rejoin", UDim2.new(0, 0, 0, yPos), function(enabled)
+                    NeonHub.Settings.AutoRejoin = enabled
+                end)
+            end
+        end)
+
+        -- Ativar primeira aba por padrão
+        if i == 1 then
+            TabButton.MouseButton1Click()
+        end
+    end
+
+    return ScreenGui
+end
+
+-- Configuração de tecla toggle (Compatível com KRNL Mobile)
+pcall(function()
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Enum.KeyCode.RightControl then
+            if playerGui:FindFirstChild("NeonHubPremium") then
+                playerGui.NeonHubPremium:Destroy()
+            else
+                CreateNeonGUI()
+            end
+        end
+    end)
+end)
+
+-- Core Loops (Protegido com pcall)
+RunService.Heartbeat:Connect(function()
+    pcall(FastAttack))
+end)
+
+-- Notificação de sucesso (Compatível com KRNL Mobile)
+local function ShowSuccessNotification()
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "Neon Hub Premium";
+            Text = "Script carregado! RightCtrl para abrir.";
+            Duration = 6;
+        })
+    end)
+end
+
+-- Inicializar
+ShowSuccessNotification()
+CreateNeonGUI()
+
+print("Neon Hub Premium by _XzgyX_ carregado!")
+print("Pressione RightCtrl para abrir/fechar")
+print("Compatível com KRNL Mobile!")
