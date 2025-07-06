@@ -8,34 +8,6 @@
     ╚═══════════════════════════════════════════════════════════════╝
 ]]
 
--- Verificar se está no Roblox
-if not game or not game:GetService then
-    warn("❌ Este script deve ser executado no Roblox!")
-    print("📋 Copie este código e execute em um executor do Roblox")
-    return
-end
-
--- Anti-Detecção Avançada
-local function setupAntiDetection()
-    pcall(function()
-        local mt = getrawmetatable(game)
-        local old = mt.__namecall
-        setreadonly(mt, false)
-        mt.__namecall = newcclosure(function(self, ...)
-            local method = getnamecallmethod()
-            if method == "FireServer" or method == "InvokeServer" then
-                if tostring(self):find("LogService") or tostring(self):find("Kick") then
-                    return
-                end
-            end
-            return old(self, ...)
-        end)
-        setreadonly(mt, true)
-    end)
-end
-
-setupAntiDetection()
-
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
