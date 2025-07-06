@@ -1,0 +1,414 @@
+
+-- Neon Hub
+-- Created By XzgyX
+-- Brainrot Roblox Script
+
+local Library = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Library:CreateWindow({
+    Title = "🌟 Neon Hub 🌟 | By XzgyX",
+    SubTitle = "Ultimate Brainrot Experience",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Variables
+local flying = false
+local noclip = false
+local esp = false
+local speedEnabled = false
+local jumpEnabled = false
+local walkSpeed = 16
+local jumpPower = 50
+local flySpeed = 16
+
+-- Main Tab
+local MainTab = Window:AddTab({ Title = "🚀 Main Features", Icon = "home" })
+
+-- Movement Section
+local MovementSection = MainTab:AddSection("Movement Hacks")
+
+local SpeedSlider = MovementSection:AddSlider("WalkSpeed", {
+    Title = "Walk Speed",
+    Description = "Adjust your walking speed",
+    Default = 16,
+    Min = 16,
+    Max = 100,
+    Rounding = 1,
+    Callback = function(Value)
+        walkSpeed = Value
+        if speedEnabled then
+            Humanoid.WalkSpeed = Value
+        end
+    end
+})
+
+local SpeedToggle = MovementSection:AddToggle("SpeedToggle", {
+    Title = "Speed Hack",
+    Description = "Enable super speed",
+    Default = false,
+    Callback = function(Value)
+        speedEnabled = Value
+        if Value then
+            Humanoid.WalkSpeed = walkSpeed
+        else
+            Humanoid.WalkSpeed = 16
+        end
+    end
+})
+
+local JumpSlider = MovementSection:AddSlider("JumpPower", {
+    Title = "Jump Power",
+    Description = "Adjust your jump power",
+    Default = 50,
+    Min = 50,
+    Max = 200,
+    Rounding = 1,
+    Callback = function(Value)
+        jumpPower = Value
+        if jumpEnabled then
+            Humanoid.JumpPower = Value
+        end
+    end
+})
+
+local JumpToggle = MovementSection:AddToggle("JumpToggle", {
+    Title = "Jump Hack",
+    Description = "Enable super jump",
+    Default = false,
+    Callback = function(Value)
+        jumpEnabled = Value
+        if Value then
+            Humanoid.JumpPower = jumpPower
+        else
+            Humanoid.JumpPower = 50
+        end
+    end
+})
+
+local FlyToggle = MovementSection:AddToggle("FlyToggle", {
+    Title = "Fly Hack",
+    Description = "Fly around the map",
+    Default = false,
+    Callback = function(Value)
+        flying = Value
+        if flying then
+            startFlying()
+        else
+            stopFlying()
+        end
+    end
+})
+
+local NoClipToggle = MovementSection:AddToggle("NoClipToggle", {
+    Title = "NoClip",
+    Description = "Walk through walls",
+    Default = false,
+    Callback = function(Value)
+        noclip = Value
+    end
+})
+
+-- Visual Section
+local VisualSection = MainTab:AddSection("Visual Features")
+
+local ESPToggle = VisualSection:AddToggle("ESPToggle", {
+    Title = "Player ESP",
+    Description = "See players through walls",
+    Default = false,
+    Callback = function(Value)
+        esp = Value
+        if esp then
+            enableESP()
+        else
+            disableESP()
+        end
+    end
+})
+
+local FullbrightToggle = VisualSection:AddToggle("FullbrightToggle", {
+    Title = "Fullbright",
+    Description = "Maximum brightness",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+        else
+            Lighting.Brightness = 1
+            Lighting.ClockTime = 12
+            Lighting.FogEnd = 100
+            Lighting.GlobalShadows = true
+            Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
+        end
+    end
+})
+
+-- Brainrot Tab
+local BrainrotTab = Window:AddTab({ Title = "🧠 Brainrot", Icon = "skull" })
+
+local BrainrotSection = BrainrotTab:AddSection("Brainrot Features")
+
+BrainrotSection:AddButton({
+    Title = "Sigma Male Mode",
+    Description = "Activate ultimate sigma energy",
+    Callback = function()
+        Library:Notify({
+            Title = "🗿 Sigma Mode Activated",
+            Content = "You are now a certified sigma male",
+            Duration = 3
+        })
+        -- Add sigma particle effects
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(0.1, 0.1, 0.1)
+        part.Material = Enum.Material.Neon
+        part.BrickColor = BrickColor.new("Bright blue")
+        part.Anchored = true
+        part.Parent = Workspace
+        part.Position = RootPart.Position
+        
+        local tween = TweenService:Create(part, TweenInfo.new(2), {Size = Vector3.new(10, 10, 10), Transparency = 1})
+        tween:Play()
+        tween.Completed:Connect(function()
+            part:Destroy()
+        end)
+    end
+})
+
+BrainrotSection:AddButton({
+    Title = "Ohio Rizz",
+    Description = "Only in Ohio...",
+    Callback = function()
+        Library:Notify({
+            Title = "💀 Ohio Moment",
+            Content = "Bro thinks he's in Ohio 💀💀💀",
+            Duration = 3
+        })
+        -- Teleport player randomly
+        local randomPos = Vector3.new(
+            math.random(-100, 100),
+            RootPart.Position.Y + 50,
+            math.random(-100, 100)
+        )
+        RootPart.CFrame = CFrame.new(randomPos)
+    end
+})
+
+BrainrotSection:AddButton({
+    Title = "Skibidi Toilet",
+    Description = "Skibidi bop bop yes yes",
+    Callback = function()
+        Library:Notify({
+            Title = "🚽 Skibidi Mode",
+            Content = "Skibidi bop bop yes yes!",
+            Duration = 3
+        })
+        -- Spin player
+        local spin = TweenService:Create(RootPart, TweenInfo.new(2), {CFrame = RootPart.CFrame * CFrame.Angles(0, math.rad(720), 0)})
+        spin:Play()
+    end
+})
+
+-- Teleports Tab
+local TeleportTab = Window:AddTab({ Title = "📍 Teleports", Icon = "map-pin" })
+
+local TeleportSection = TeleportTab:AddSection("Quick Teleports")
+
+TeleportSection:AddButton({
+    Title = "Spawn",
+    Description = "Teleport to spawn",
+    Callback = function()
+        local spawnLocation = Workspace.SpawnLocation or Workspace:FindFirstChild("Spawn")
+        if spawnLocation then
+            RootPart.CFrame = spawnLocation.CFrame + Vector3.new(0, 5, 0)
+        else
+            RootPart.CFrame = CFrame.new(0, 50, 0)
+        end
+    end
+})
+
+TeleportSection:AddButton({
+    Title = "Random Player",
+    Description = "Teleport to random player",
+    Callback = function()
+        local players = {}
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                table.insert(players, player)
+            end
+        end
+        
+        if #players > 0 then
+            local randomPlayer = players[math.random(1, #players)]
+            RootPart.CFrame = randomPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
+            Library:Notify({
+                Title = "Teleported",
+                Content = "Teleported to " .. randomPlayer.Name,
+                Duration = 2
+            })
+        end
+    end
+})
+
+-- Settings Tab
+local SettingsTab = Window:AddTab({ Title = "⚙️ Settings", Icon = "settings" })
+
+local SettingsSection = SettingsTab:AddSection("Hub Settings")
+
+SettingsSection:AddButton({
+    Title = "Destroy GUI",
+    Description = "Remove the hub interface",
+    Callback = function()
+        Library:Destroy()
+    end
+})
+
+-- Functions
+function startFlying()
+    local bodyVelocity = Instance.new("BodyVelocity")
+    local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+    
+    bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyAngularVelocity.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+    
+    bodyVelocity.Parent = RootPart
+    bodyAngularVelocity.Parent = RootPart
+    
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        if not flying then
+            connection:Disconnect()
+            return
+        end
+        
+        local camera = Workspace.CurrentCamera
+        local moveVector = Vector3.new(0, 0, 0)
+        
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveVector = moveVector + camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveVector = moveVector - camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveVector = moveVector - camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveVector = moveVector + camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveVector = moveVector + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            moveVector = moveVector - Vector3.new(0, 1, 0)
+        end
+        
+        bodyVelocity.Velocity = moveVector * flySpeed
+    end)
+end
+
+function stopFlying()
+    if RootPart:FindFirstChild("BodyVelocity") then
+        RootPart.BodyVelocity:Destroy()
+    end
+    if RootPart:FindFirstChild("BodyAngularVelocity") then
+        RootPart.BodyAngularVelocity:Destroy()
+    end
+end
+
+function enableESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local esp = Instance.new("BillboardGui")
+            local frame = Instance.new("Frame")
+            local nameLabel = Instance.new("TextLabel")
+            
+            esp.Name = "ESP"
+            esp.Size = UDim2.new(0, 200, 0, 50)
+            esp.StudsOffset = Vector3.new(0, 3, 0)
+            esp.Parent = player.Character.HumanoidRootPart
+            
+            frame.Size = UDim2.new(1, 0, 1, 0)
+            frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            frame.BackgroundTransparency = 0.5
+            frame.BorderSizePixel = 0
+            frame.Parent = esp
+            
+            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = player.Name
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            nameLabel.TextStrokeTransparency = 0
+            nameLabel.TextScaled = true
+            nameLabel.Parent = frame
+        end
+    end
+end
+
+function disableESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local esp = player.Character.HumanoidRootPart:FindFirstChild("ESP")
+            if esp then
+                esp:Destroy()
+            end
+        end
+    end
+end
+
+-- NoClip Handler
+RunService.Heartbeat:Connect(function()
+    if noclip and Character then
+        for _, part in pairs(Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- Character Reset Handler
+Player.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    Humanoid = Character:WaitForChild("Humanoid")
+    RootPart = Character:WaitForChild("HumanoidRootPart")
+    
+    if speedEnabled then
+        Humanoid.WalkSpeed = walkSpeed
+    end
+    if jumpEnabled then
+        Humanoid.JumpPower = jumpPower
+    end
+end)
+
+-- Startup notification
+Library:Notify({
+    Title = "🌟 Neon Hub Loaded",
+    Content = "Successfully loaded Neon Hub by XzgyX!",
+    Duration = 5
+})
+
+print("Neon Hub loaded successfully!")
+print("Created by XzgyX")
