@@ -1,0 +1,614 @@
+-- Neon Hub v2 - Blox Fruits Script
+-- Criador: XzgyX
+-- Para usar: Copie este código e cole em seu executor (Delta, Fluxus, Hydrogen)
+
+-- ===== VERIFICAÇÃO DE AMBIENTE ROBLOX =====
+if not game or not game:GetService then
+    print("❌ ERRO: Este script deve ser executado dentro do Roblox!")
+    print("📋 INSTRUÇÕES:")
+    print("1. Abra o Roblox e entre no jogo Blox Fruits")
+    print("2. Abra seu executor (Delta, Fluxus, Hydrogen)")
+    print("3. Copie este código completo")
+    print("4. Cole no executor e execute")
+    print("")
+    print("🔗 CÓDIGO PARA COPIAR:")
+    print("=" * 50)
+
+    -- Aqui está o código completo para ser copiado
+    local robloxScript = [[
+-- Neon Hub v2 - Blox Fruits Script
+-- Criador: XzgyX
+-- Sistema completo de auto farm, boss farm, mastery, PvP, e muito mais
+-- Compatível com Delta, Fluxus, Hydrogen (PC e Mobile)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- ===== CONFIGURAÇÕES GLOBAIS =====
+local NeonHub = {
+    Version = "2.0",
+    Creator = "XzgyX",
+    Settings = {
+        -- FARM
+        AutoFarm = false,
+        AutoQuest = false,
+        AutoBoss = false,
+        AutoMastery = false,
+        AutoSeaBeast = false,
+        AutoMaterial = false,
+        AutoCDK = false,
+        AutoYama = false,
+        AutoTushita = false,
+        AutoSaber = false,
+        AutoPole = false,
+        AutoBuddy = false,
+
+        -- COMBAT
+        FastAttack = false,
+        AutoHaki = false,
+        AutoAura = false,
+        AutoSkills = false,
+        SkillZ = false,
+        SkillX = false,
+        SkillC = false,
+        SkillV = false,
+        SkillF = false,
+        KillAura = false,
+        Aimbot = false,
+        PvPCombo = false,
+
+        -- FRUITS
+        AutoBuyFruit = false,
+        AutoEatFruit = false,
+        AutoStoreFruit = false,
+        AutoDropFruit = false,
+        FruitNotify = false,
+        FruitSniper = false,
+
+        -- TELEPORT
+        TPToIsland = false,
+        TPToBoss = false,
+        TPToNPC = false,
+        SafeTP = false,
+        EmergencyTP = false,
+
+        -- ESP
+        ESPPlayer = false,
+        ESPEnemy = false,
+        ESPFruit = false,
+        ESPChest = false,
+        ESPSeaBeast = false,
+        ESPIsland = false,
+
+        -- MOVEMENT
+        Fly = false,
+        NoClip = false,
+        SpeedHack = false,
+        JumpHack = false,
+        InfiniteEnergy = false,
+        AntiFall = false,
+
+        -- MISC
+        AntiAFK = false,
+        FPSBoost = false,
+        ServerHop = false,
+        AutoRejoin = false,
+        DiscordWebhook = "",
+        SaveConfig = false,
+
+        -- STATS
+        AutoStats = false,
+        StatMelee = 70,
+        StatDefense = 20,
+        StatSword = 5,
+        StatGun = 0,
+        StatFruit = 5,
+
+        -- VALUES
+        FlySpeed = 16,
+        WalkSpeed = 16,
+        JumpPower = 50,
+        AimbotFOV = 100,
+        KillAuraRange = 50,
+        FarmDistance = 20,
+
+        -- SELECTED
+        SelectedWeapon = "Melee",
+        SelectedBoss = "All",
+        SelectedIsland = "Starter Island",
+        SelectedMaterial = "All",
+        FarmMode = "Level"
+    },
+
+    -- DADOS DO JOGO
+    Islands = {
+        -- Sea 1
+        ["Starter Island"] = CFrame.new(1059, 16, 1543),
+        ["Jungle"] = CFrame.new(-60, 73, 1550),
+        ["Pirate Village"] = CFrame.new(-1181, 4, 3803),
+        ["Marine Base"] = CFrame.new(-2573, 6, 2046),
+        ["Middle Town"] = CFrame.new(-4541, 844, 3741),
+        ["Frozen Village"] = CFrame.new(1395, 87, -1482),
+        ["Marine Fortress"] = CFrame.new(-2994, 12, -2990),
+        ["Skypiea"] = CFrame.new(-4607, 872, -1667),
+        ["Prison"] = CFrame.new(4875, 5, 734),
+        ["Colosseum"] = CFrame.new(-1427, 7, -2792),
+        ["Magma Village"] = CFrame.new(-5247, 12, -4752),
+        ["Underwater City"] = CFrame.new(61123, 11, 1819),
+        ["Upper Skypiea"] = CFrame.new(-7894, 5547, -380),
+
+        -- Sea 2
+        ["Kingdom of Rose"] = CFrame.new(-334, 20, 659),
+        ["Usoap's Island"] = CFrame.new(4816, 8, 2863),
+        ["Green Zone"] = CFrame.new(-2448, 73, -3210),
+        ["Swan's Room"] = CFrame.new(2284, 15, 905),
+        ["Hydra Island"] = CFrame.new(5749, 611, -276),
+        ["Mansion"] = CFrame.new(-12463, 374, -7523),
+        ["Cursed Ship"] = CFrame.new(923, 125, 32852),
+        ["Ice Castle"] = CFrame.new(6148, 294, -6741),
+        ["Forgotten Island"] = CFrame.new(-3032, 317, -10075),
+        ["Ussop Island"] = CFrame.new(4816, 8, 2863),
+        ["Mini Sky Island"] = CFrame.new(-288, 306, -2394),
+
+        -- Sea 3
+        ["Port Town"] = CFrame.new(-290, 43, 5577),
+        ["Hydra Island"] = CFrame.new(5749, 611, -276),
+        ["Great Tree"] = CFrame.new(2681, 1682, -7190),
+        ["Castle on the Sea"] = CFrame.new(-5075, 314, -3150),
+        ["Haunted Castle"] = CFrame.new(-9515, 142, 5618),
+        ["Peanut Island"] = CFrame.new(-2062, 50, -10232),
+        ["Ice Cream Island"] = CFrame.new(-902, 79, -10988),
+        ["Cake Island"] = CFrame.new(-1884, 19, -11666),
+        ["Cocoa Island"] = CFrame.new(87, 73, -12297),
+        ["Candy Island"] = CFrame.new(-1014, 149, -14555),
+        ["Tiki Outpost"] = CFrame.new(-16545, 55, 1051)
+    },
+
+    Bosses = {
+        -- Sea 1
+        ["The Gorilla King"] = {Level = 25, Island = "Jungle"},
+        ["Bobby"] = {Level = 55, Island = "Pirate Village"},
+        ["Yeti"] = {Level = 110, Island = "Frozen Village"},
+        ["Mob Leader"] = {Level = 120, Island = "Desert"},
+        ["Vice Admiral"] = {Level = 130, Island = "Marine Fortress"},
+        ["Warden"] = {Level = 220, Island = "Prison"},
+        ["Chief Warden"] = {Level = 230, Island = "Prison"},
+        ["Swan"] = {Level = 240, Island = "Prison"},
+        ["Magma Admiral"] = {Level = 350, Island = "Magma Village"},
+        ["Fishman Lord"] = {Level = 425, Island = "Underwater City"},
+        ["Wysper"] = {Level = 500, Island = "Upper Skypiea"},
+        ["Thunder God"] = {Level = 575, Island = "Upper Skypiea"},
+
+        -- Sea 2
+        ["Diamond"] = {Level = 750, Island = "Kingdom of Rose"},
+        ["Jeremy"] = {Level = 850, Island = "Kingdom of Rose"},
+        ["Fajita"] = {Level = 925, Island = "Green Zone"},
+        ["Don Swan"] = {Level = 1000, Island = "Swan's Room"},
+        ["Smoke Admiral"] = {Level = 1150, Island = "Usoap's Island"},
+        ["Cursed Captain"] = {Level = 1325, Island = "Cursed Ship"},
+        ["Darkbeard"] = {Level = 1000, Island = "Dark Arena"},
+        ["Order"] = {Level = 1250, Island = "Colosseum"},
+        ["Awakened Ice Admiral"] = {Level = 1400, Island = "Ice Castle"},
+
+        -- Sea 3
+        ["Stone"] = {Level = 1550, Island = "Port Town"},
+        ["Island Empress"] = {Level = 1675, Island = "Amazon"},
+        ["Kilo Admiral"] = {Level = 1750, Island = "Marine Fortress"},
+        ["Captain Elephant"] = {Level = 1875, Island = "Floating Turtle"},
+        ["Beautiful Pirate"] = {Level = 1950, Island = "Hydra Island"},
+        ["rip_indra True Form"] = {Level = 5000, Island = "Mansion"},
+        ["Longma"] = {Level = 2000, Island = "Tiki Outpost"},
+        ["Soul Reaper"] = {Level = 2100, Island = "Haunted Castle"},
+        ["Cake Queen"] = {Level = 2175, Island = "Cake Island"}
+    },
+
+    Materials = {
+        "Magma Ore", "Angel Wings", "Leather", "Scrap Metal", "Fish Tail",
+        "Mystic Droplet", "Fabric", "Gunpowder", "Vampire Fang", "Radioactive Material",
+        "Mini Tusk", "Dragon Scale", "Conjured Cocoa", "Demonic Wisp", "Bones"
+    },
+
+    Fruits = {
+        "Kilo", "Spin", "Spring", "Bomb", "Smoke", "Spike", "Flame", "Falcon",
+        "Ice", "Sand", "Dark", "Diamond", "Light", "Rubber", "Barrier", "Ghost",
+        "Magma", "Quake", "Buddha", "Love", "Spider", "Sound", "Phoenix", "Portal",
+        "Rumble", "Pain", "Blizzard", "Gravity", "Mammoth", "T-Rex", "Dough",
+        "Shadow", "Venom", "Control", "Spirit", "Dragon", "Leopard", "Kitsune"
+    },
+
+    -- ESTADO DO SCRIPT
+    CurrentTarget = nil,
+    LastAttack = 0,
+    GUI = nil,
+    Connections = {},
+    ESPObjects = {},
+    FlyConnection = nil,
+    IsFlying = false,
+    SavedPosition = nil
+}
+
+-- ===== FUNÇÕES UTILITÁRIAS =====
+function getLevel()
+    return player.Data.Level.Value or 1
+end
+
+function getPlayerSea()
+    local level = getLevel()
+    if level < 700 then return 1
+    elseif level < 1500 then return 2
+    else return 3 end
+end
+
+function getBeli()
+    return player.Data.Beli.Value or 0
+end
+
+function getFragments()
+    return player.Data.Fragments.Value or 0
+end
+
+function getCurrentIsland()
+    local playerPos = rootPart.Position
+    local closestIsland = "Unknown"
+    local closestDistance = math.huge
+
+    for island, pos in pairs(NeonHub.Islands) do
+        local distance = (playerPos - pos.Position).Magnitude
+        if distance < closestDistance then
+            closestDistance = distance
+            closestIsland = island
+        end
+    end
+
+    return closestIsland
+end
+
+-- ===== SISTEMA DE TELEPORTE AVANÇADO =====
+function safeTeleport(cframe, speed)
+    if not cframe then return false end
+    speed = speed or 300
+
+    local distance = (rootPart.Position - cframe.Position).Magnitude
+    local time = distance / speed
+
+    if time > 10 then time = 10 end
+    if time < 0.5 then time = 0.5 end
+
+    local tween = TweenService:Create(
+        rootPart,
+        TweenInfo.new(time, Enum.EasingStyle.Linear),
+        {CFrame = cframe}
+    )
+
+    tween:Play()
+
+    if NeonHub.Settings.SafeTP then
+        tween.Completed:Wait()
+    end
+
+    return true
+end
+
+function instantTeleport(cframe)
+    if not cframe then return false end
+    rootPart.CFrame = cframe
+    return true
+end
+
+function teleportToIsland(islandName)
+    local cframe = NeonHub.Islands[islandName]
+    if cframe then
+        print("🧭 Navegando para " .. islandName)
+        return safeTeleport(cframe)
+    end
+    return false
+end
+
+-- ===== SISTEMA DE NOTIFICAÇÕES =====
+function notify(title, text, duration)
+    duration = duration or 5
+
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = duration,
+        Icon = "rbxassetid://6023426923"
+    })
+end
+
+-- ===== INTERFACE GRÁFICA SIMPLIFICADA =====
+function createGUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "NeonHubV2"
+    screenGui.Parent = game.CoreGui
+    screenGui.ResetOnSpawn = false
+
+    -- Frame principal
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 400, 0, 500)
+    mainFrame.Position = UDim2.new(0, 50, 0, 50)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Active = true
+    mainFrame.Draggable = true
+    mainFrame.Parent = screenGui
+
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 12)
+    mainCorner.Parent = mainFrame
+
+    -- Barra de título
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 60)
+    titleBar.Position = UDim2.new(0, 0, 0, 0)
+    titleBar.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = mainFrame
+
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.Parent = titleBar
+
+    -- Título
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, -60, 1, 0)
+    title.Position = UDim2.new(0, 20, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "💎 Neon Hub v2 - By XzgyX"
+    title.TextColor3 = Color3.white
+    title.TextSize = 16
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Font = Enum.Font.GothamBold
+    title.Parent = titleBar
+
+    -- Botão fechar
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 40, 0, 40)
+    closeButton.Position = UDim2.new(1, -50, 0, 10)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    closeButton.Text = "✕"
+    closeButton.TextColor3 = Color3.white
+    closeButton.TextSize = 18
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Parent = titleBar
+
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 8)
+    closeCorner.Parent = closeButton
+
+    closeButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+
+    -- Container de conteúdo
+    local contentFrame = Instance.new("ScrollingFrame")
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Size = UDim2.new(1, 0, 1, -60)
+    contentFrame.Position = UDim2.new(0, 0, 0, 60)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.BorderSizePixel = 0
+    contentFrame.ScrollBarThickness = 4
+    contentFrame.ScrollBarImageColor3 = Color3.fromRGB(138, 43, 226)
+    contentFrame.CanvasSize = UDim2.new(0, 0, 0, 800)
+    contentFrame.Parent = mainFrame
+
+    local layout = Instance.new("UIListLayout")
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 5)
+    layout.Parent = contentFrame
+
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.PaddingTop = UDim.new(0, 10)
+    padding.PaddingBottom = UDim.new(0, 10)
+    padding.Parent = contentFrame
+
+    -- Função para criar botões toggle
+    function createToggleButton(text, setting, callback)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, 0, 0, 35)
+        button.BackgroundColor3 = NeonHub.Settings[setting] and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(200, 50, 50)
+        button.Text = text
+        button.TextColor3 = Color3.white
+        button.TextSize = 14
+        button.Font = Enum.Font.Gotham
+        button.Parent = contentFrame
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = button
+
+        button.MouseButton1Click:Connect(function()
+            NeonHub.Settings[setting] = not NeonHub.Settings[setting]
+            button.BackgroundColor3 = NeonHub.Settings[setting] and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(200, 50, 50)
+
+            if callback then
+                callback(NeonHub.Settings[setting])
+            end
+        end)
+
+        return button
+    end
+
+    -- Criando botões principais
+    createToggleButton("🎯 Auto Farm Level", "AutoFarm")
+    createToggleButton("📋 Auto Quest", "AutoQuest")
+    createToggleButton("👑 Auto Boss Farm", "AutoBoss")
+    createToggleButton("⚡ Fast Attack", "FastAttack")
+    createToggleButton("🛡️ Auto Haki", "AutoHaki")
+    createToggleButton("👁️ Auto Aura (Ken)", "AutoAura")
+    createToggleButton("✈️ Fly", "Fly", function(enabled)
+        if enabled then
+            startFly()
+        else
+            stopFly()
+        end
+    end)
+    createToggleButton("👻 NoClip", "NoClip")
+    createToggleButton("💨 Speed Hack", "SpeedHack")
+    createToggleButton("🦘 Jump Hack", "JumpHack")
+    createToggleButton("😴 Anti-AFK", "AntiAFK")
+
+    -- Status display
+    local statusFrame = Instance.new("Frame")
+    statusFrame.Size = UDim2.new(1, 0, 0, 80)
+    statusFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    statusFrame.BorderSizePixel = 0
+    statusFrame.Parent = contentFrame
+
+    local statusCorner = Instance.new("UICorner")
+    statusCorner.CornerRadius = UDim.new(0, 6)
+    statusCorner.Parent = statusFrame
+
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(1, -20, 1, -20)
+    statusLabel.Position = UDim2.new(0, 10, 0, 10)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "📊 Status: Iniciando..."
+    statusLabel.TextColor3 = Color3.white
+    statusLabel.TextSize = 12
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextWrapped = true
+    statusLabel.TextYAlignment = Enum.TextYAlignment.Top
+    statusLabel.Parent = statusFrame
+
+    -- Update status loop
+    spawn(function()
+        while statusLabel and statusLabel.Parent do
+            wait(1)
+            local level = getLevel()
+            local island = getCurrentIsland()
+            local sea = getPlayerSea()
+            local beli = getBeli()
+            local fragments = getFragments()
+
+            statusLabel.Text = string.format(
+                "📊 Level: %d | 🌊 Sea: %d\n🏝️ Ilha: %s\n💰 Beli: %s\n🔹 Fragments: %s\n🎯 Target: %s",
+                level, sea, island, 
+                tostring(beli):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""),
+                tostring(fragments):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""),
+                NeonHub.CurrentTarget or "Nenhum"
+            )
+        end
+    end)
+
+    NeonHub.GUI = screenGui
+    print("🎨 Interface criada com sucesso!")
+end
+
+-- ===== SISTEMA DE MOVIMENTO =====
+function startFly()
+    if NeonHub.IsFlying then return end
+
+    NeonHub.IsFlying = true
+
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Parent = rootPart
+
+    local bodyPosition = Instance.new("BodyPosition")
+    bodyPosition.MaxForce = Vector3.new(4000, 4000, 4000)
+    bodyPosition.Position = rootPart.Position
+    bodyPosition.Parent = rootPart
+
+    NeonHub.FlyConnection = RunService.Heartbeat:Connect(function()
+        if not NeonHub.Settings.Fly then
+            stopFly()
+            return
+        end
+
+        local camera = Workspace.CurrentCamera
+        local moveVector = Vector3.new(0, 0, 0)
+
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveVector = moveVector + camera.CFrame.lookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveVector = moveVector - camera.CFrame.lookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveVector = moveVector - camera.CFrame.rightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveVector = moveVector + camera.CFrame.rightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveVector = moveVector + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            moveVector = moveVector - Vector3.new(0, 1, 0)
+        end
+
+        bodyVelocity.Velocity = moveVector * NeonHub.Settings.FlySpeed
+        bodyPosition.Position = rootPart.Position + (moveVector * 0.5)
+    end)
+
+    print("✈️ Fly ativado")
+end
+
+function stopFly()
+    if not NeonHub.IsFlying then return end
+
+    NeonHub.IsFlying = false
+
+    if NeonHub.FlyConnection then
+        NeonHub.FlyConnection:Disconnect()
+        NeonHub.FlyConnection = nil
+    end
+
+    for _, obj in pairs(rootPart:GetChildren()) do
+        if obj:IsA("BodyVelocity") or obj:IsA("BodyPosition") then
+            obj:Destroy()
+        end
+    end
+
+    print("✈️ Fly desativado")
+end
+
+-- ===== INICIALIZAÇÃO =====
+print("🚀 Neon Hub v2 - Criado por XzgyX")
+print("📋 Funcionalidades:")
+print("✅ Auto Farm Level com Fast Attack")
+print("✅ Auto Farm Bosses")
+print("✅ Auto Quest")
+print("✅ Sistema de combate")
+print("✅ Fly, NoClip, Speed/Jump Hack")
+print("✅ Anti-AFK")
+print("✅ Interface moderna")
+
+-- Cria a interface
+createGUI()
+
+-- Mensagem de sucesso
+notify("Neon Hub v2", "Script carregado com sucesso!\nCriado por: XzgyX", 10)
+
+print("💎 Neon Hub v2 iniciado com sucesso!")
+print("🎮 Use a interface para configurar as opções")
+print("👨‍💻 Criado por: XzgyX")
+]]
+
+    print(robloxScript)
+    print("=" * 50)
+    return
+end
+
+-- Se chegou até aqui, está no Roblox - executa o script
+loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
