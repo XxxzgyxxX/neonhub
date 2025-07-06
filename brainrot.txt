@@ -1,0 +1,796 @@
+
+-- Neon Hub V2
+-- Created By XzgyX
+-- Ultimate Brainrot Roblox Script with Orion UI
+
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "🌟 Neon Hub V2 🌟 | By XzgyX", 
+    HidePremium = false, 
+    SaveConfig = true, 
+    ConfigFolder = "NeonHub"
+})
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local SoundService = game:GetService("SoundService")
+local TeleportService = game:GetService("TeleportService")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Variables
+local flying = false
+local noclip = false
+local esp = false
+local speedEnabled = false
+local jumpEnabled = false
+local infiniteJump = false
+local walkSpeed = 16
+local jumpPower = 50
+local flySpeed = 16
+local autoFarm = false
+local godMode = false
+local antiAFK = false
+
+-- Main Tab
+local MainTab = Window:MakeTab({
+    Name = "🚀 Main",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Movement Section
+MainTab:AddSection({
+    Name = "Movement Hacks"
+})
+
+MainTab:AddSlider({
+    Name = "Walk Speed",
+    Min = 16,
+    Max = 500,
+    Default = 16,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "Speed",
+    Callback = function(Value)
+        walkSpeed = Value
+        if speedEnabled then
+            Humanoid.WalkSpeed = Value
+        end
+    end    
+})
+
+MainTab:AddToggle({
+    Name = "Speed Hack",
+    Default = false,
+    Callback = function(Value)
+        speedEnabled = Value
+        if Value then
+            Humanoid.WalkSpeed = walkSpeed
+        else
+            Humanoid.WalkSpeed = 16
+        end
+    end    
+})
+
+MainTab:AddSlider({
+    Name = "Jump Power",
+    Min = 50,
+    Max = 500,
+    Default = 50,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "Power",
+    Callback = function(Value)
+        jumpPower = Value
+        if jumpEnabled then
+            Humanoid.JumpPower = Value
+        end
+    end    
+})
+
+MainTab:AddToggle({
+    Name = "Jump Hack",
+    Default = false,
+    Callback = function(Value)
+        jumpEnabled = Value
+        if Value then
+            Humanoid.JumpPower = jumpPower
+        else
+            Humanoid.JumpPower = 50
+        end
+    end    
+})
+
+MainTab:AddToggle({
+    Name = "Infinite Jump",
+    Default = false,
+    Callback = function(Value)
+        infiniteJump = Value
+    end    
+})
+
+MainTab:AddSlider({
+    Name = "Fly Speed",
+    Min = 1,
+    Max = 100,
+    Default = 16,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "Speed",
+    Callback = function(Value)
+        flySpeed = Value
+    end    
+})
+
+MainTab:AddToggle({
+    Name = "Fly Hack",
+    Default = false,
+    Callback = function(Value)
+        flying = Value
+        if flying then
+            startFlying()
+        else
+            stopFlying()
+        end
+    end    
+})
+
+MainTab:AddToggle({
+    Name = "NoClip",
+    Default = false,
+    Callback = function(Value)
+        noclip = Value
+    end    
+})
+
+-- Combat Section
+MainTab:AddSection({
+    Name = "Combat Hacks"
+})
+
+MainTab:AddToggle({
+    Name = "God Mode",
+    Default = false,
+    Callback = function(Value)
+        godMode = Value
+        if godMode then
+            Humanoid.MaxHealth = math.huge
+            Humanoid.Health = math.huge
+        else
+            Humanoid.MaxHealth = 100
+            Humanoid.Health = 100
+        end
+    end    
+})
+
+MainTab:AddButton({
+    Name = "Kill All Players",
+    Callback = function()
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Player and player.Character and player.Character:FindFirstChild("Humanoid") then
+                player.Character.Humanoid.Health = 0
+            end
+        end
+        OrionLib:MakeNotification({
+            Name = "💀 Kill All",
+            Content = "Attempted to kill all players",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
+    end    
+})
+
+-- Visual Tab
+local VisualTab = Window:MakeTab({
+    Name = "👁️ Visual",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+VisualTab:AddToggle({
+    Name = "Player ESP",
+    Default = false,
+    Callback = function(Value)
+        esp = Value
+        if esp then
+            enableESP()
+        else
+            disableESP()
+        end
+    end    
+})
+
+VisualTab:AddToggle({
+    Name = "Fullbright",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+        else
+            Lighting.Brightness = 1
+            Lighting.ClockTime = 12
+            Lighting.FogEnd = 100
+            Lighting.GlobalShadows = true
+            Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
+        end
+    end    
+})
+
+VisualTab:AddButton({
+    Name = "Rainbow UI",
+    Callback = function()
+        local rainbowColors = {
+            Color3.fromRGB(255, 0, 0),
+            Color3.fromRGB(255, 127, 0),
+            Color3.fromRGB(255, 255, 0),
+            Color3.fromRGB(0, 255, 0),
+            Color3.fromRGB(0, 0, 255),
+            Color3.fromRGB(75, 0, 130),
+            Color3.fromRGB(148, 0, 211)
+        }
+        
+        spawn(function()
+            while true do
+                for _, color in pairs(rainbowColors) do
+                    Lighting.Ambient = color
+                    Lighting.OutdoorAmbient = color
+                    wait(0.5)
+                end
+            end
+        end)
+    end    
+})
+
+-- Brainrot Tab
+local BrainrotTab = Window:MakeTab({
+    Name = "🧠 Brainrot",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+BrainrotTab:AddSection({
+    Name = "Ultimate Brainrot Features"
+})
+
+BrainrotTab:AddButton({
+    Name = "🗿 Sigma Male Mode",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "🗿 Sigma Mode",
+            Content = "You are now a certified sigma male",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
+        
+        -- Sigma particles
+        for i = 1, 50 do
+            local part = Instance.new("Part")
+            part.Size = Vector3.new(0.5, 0.5, 0.5)
+            part.Material = Enum.Material.Neon
+            part.BrickColor = BrickColor.new("Bright blue")
+            part.Anchored = true
+            part.Parent = Workspace
+            part.Position = RootPart.Position + Vector3.new(math.random(-10, 10), math.random(0, 20), math.random(-10, 10))
+            part.Shape = Enum.PartType.Ball
+            
+            local tween = TweenService:Create(part, TweenInfo.new(3), {
+                Size = Vector3.new(0, 0, 0),
+                Transparency = 1,
+                Position = part.Position + Vector3.new(0, 50, 0)
+            })
+            tween:Play()
+            tween.Completed:Connect(function()
+                part:Destroy()
+            end)
+        end
+    end    
+})
+
+BrainrotTab:AddButton({
+    Name = "💀 Ohio Rizz",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "💀 Ohio Moment",
+            Content = "Only in Ohio bro 💀💀💀",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
+        
+        -- Ohio chaos
+        local randomPos = Vector3.new(
+            math.random(-200, 200),
+            RootPart.Position.Y + math.random(50, 100),
+            math.random(-200, 200)
+        )
+        RootPart.CFrame = CFrame.new(randomPos)
+        
+        -- Spawn ohio objects
+        for i = 1, 20 do
+            local part = Instance.new("Part")
+            part.Size = Vector3.new(math.random(1, 5), math.random(1, 5), math.random(1, 5))
+            part.Material = Enum.Material.Neon
+            part.BrickColor = BrickColor.random()
+            part.Position = RootPart.Position + Vector3.new(math.random(-50, 50), math.random(0, 50), math.random(-50, 50))
+            part.Parent = Workspace
+            
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            bodyVelocity.Velocity = Vector3.new(math.random(-50, 50), math.random(20, 100), math.random(-50, 50))
+            bodyVelocity.Parent = part
+            
+            game:GetService("Debris"):AddItem(part, 10)
+        end
+    end    
+})
+
+BrainrotTab:AddButton({
+    Name = "🚽 Skibidi Toilet",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "🚽 Skibidi Mode",
+            Content = "Skibidi bop bop yes yes!",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
+        
+        -- Skibidi spin
+        local spin = TweenService:Create(RootPart, TweenInfo.new(3), {
+            CFrame = RootPart.CFrame * CFrame.Angles(0, math.rad(1080), 0)
+        })
+        spin:Play()
+        
+        -- Play skibidi sound (if exists)
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://6918029905" -- Skibidi sound
+        sound.Volume = 0.5
+        sound.Parent = RootPart
+        sound:Play()
+        
+        sound.Ended:Connect(function()
+            sound:Destroy()
+        end)
+    end    
+})
+
+BrainrotTab:AddButton({
+    Name = "🎵 Phonk Mode",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "🎵 Phonk Activated",
+            Content = "Brazilian phonk activated 🇧🇷",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
+        
+        -- Play phonk music
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://8761001869" -- Phonk sound
+        sound.Volume = 0.3
+        sound.Looped = true
+        sound.Parent = SoundService
+        sound:Play()
+        
+        -- Bass boost effect
+        local equalizerSoundEffect = Instance.new("EqualizerSoundEffect")
+        equalizerSoundEffect.LowGain = 20
+        equalizerSoundEffect.MidGain = 5
+        equalizerSoundEffect.HighGain = -5
+        equalizerSoundEffect.Parent = sound
+    end    
+})
+
+BrainrotTab:AddButton({
+    Name = "👑 Gigachad Mode",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "👑 Gigachad",
+            Content = "Average gigachad enjoyer",
+            Image = "rbxassetid://4483345998",
+            Time = 3
+        })
+        
+        -- Make player huge and buff
+        if Character:FindFirstChild("Humanoid") then
+            local originalSize = {}
+            for _, part in pairs(Character:GetChildren()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    originalSize[part] = part.Size
+                    part.Size = part.Size * 2
+                end
+            end
+            
+            Humanoid.WalkSpeed = 50
+            Humanoid.JumpPower = 200
+        end
+    end    
+})
+
+-- Auto Farm Tab
+local FarmTab = Window:MakeTab({
+    Name = "🤖 Auto Farm",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+FarmTab:AddToggle({
+    Name = "Auto Farm (Generic)",
+    Default = false,
+    Callback = function(Value)
+        autoFarm = Value
+        if autoFarm then
+            spawn(function()
+                while autoFarm do
+                    -- Generic farming logic
+                    for _, obj in pairs(Workspace:GetChildren()) do
+                        if obj.Name:lower():find("coin") or obj.Name:lower():find("cash") or obj.Name:lower():find("money") then
+                            if obj:FindFirstChild("Humanoid") or obj:IsA("BasePart") then
+                                RootPart.CFrame = obj.CFrame or CFrame.new(obj.Position)
+                                wait(0.1)
+                            end
+                        end
+                    end
+                    wait(1)
+                end
+            end)
+        end
+    end    
+})
+
+FarmTab:AddToggle({
+    Name = "Anti AFK",
+    Default = false,
+    Callback = function(Value)
+        antiAFK = Value
+        if antiAFK then
+            spawn(function()
+                while antiAFK do
+                    for i, v in pairs(getconnections(Players.LocalPlayer.Idled)) do
+                        v:Disable()
+                    end
+                    wait(1)
+                end
+            end)
+        end
+    end    
+})
+
+-- Teleports Tab
+local TeleportTab = Window:MakeTab({
+    Name = "📍 Teleports",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+TeleportTab:AddButton({
+    Name = "Spawn",
+    Callback = function()
+        local spawnLocation = Workspace:FindFirstChild("SpawnLocation") or Workspace:FindFirstChild("Spawn")
+        if spawnLocation then
+            RootPart.CFrame = spawnLocation.CFrame + Vector3.new(0, 5, 0)
+        else
+            RootPart.CFrame = CFrame.new(0, 50, 0)
+        end
+    end    
+})
+
+TeleportTab:AddButton({
+    Name = "Random Player",
+    Callback = function()
+        local players = {}
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                table.insert(players, player)
+            end
+        end
+        
+        if #players > 0 then
+            local randomPlayer = players[math.random(1, #players)]
+            RootPart.CFrame = randomPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(math.random(-5, 5), 5, math.random(-5, 5))
+            OrionLib:MakeNotification({
+                Name = "Teleported",
+                Content = "Teleported to " .. randomPlayer.Name,
+                Image = "rbxassetid://4483345998",
+                Time = 2
+            })
+        end
+    end    
+})
+
+TeleportTab:AddButton({
+    Name = "Highest Point",
+    Callback = function()
+        local highestY = 0
+        for _, part in pairs(Workspace:GetPartBoundsInRegion(Region3.new(Vector3.new(-2048, -2048, -2048), Vector3.new(2048, 2048, 2048)), math.huge)) do
+            if part.Position.Y > highestY then
+                highestY = part.Position.Y
+            end
+        end
+        RootPart.CFrame = CFrame.new(0, highestY + 50, 0)
+    end    
+})
+
+-- Game Specific Tab
+local GameTab = Window:MakeTab({
+    Name = "🎮 Game Specific",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+GameTab:AddSection({
+    Name = "Universal Game Hacks"
+})
+
+GameTab:AddButton({
+    Name = "Break All Doors",
+    Callback = function()
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            if obj.Name:lower():find("door") and obj:IsA("BasePart") then
+                obj:Destroy()
+            end
+        end
+    end    
+})
+
+GameTab:AddButton({
+    Name = "Collect All Items",
+    Callback = function()
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            if obj.Name:lower():find("part") or obj.Name:lower():find("brick") then
+                if obj:IsA("BasePart") and obj.Size.X < 10 and obj.Size.Y < 10 and obj.Size.Z < 10 then
+                    obj.CFrame = RootPart.CFrame
+                end
+            end
+        end
+    end    
+})
+
+-- Settings Tab
+local SettingsTab = Window:MakeTab({
+    Name = "⚙️ Settings",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+SettingsTab:AddButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        TeleportService:Teleport(game.PlaceId, Player)
+    end    
+})
+
+SettingsTab:AddButton({
+    Name = "Server Hop",
+    Callback = function()
+        local PlaceId = game.PlaceId
+        local AllIDs = {}
+        local foundAnything = ""
+        local actualHour = os.date("!*t").hour
+        local Deleted = false
+        
+        function TPReturner()
+            local Site
+            if foundAnything == "" then
+                Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceId .. '/servers/Public?sortOrder=Asc&limit=100'))
+            else
+                Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceId .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+            end
+            
+            if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+                foundAnything = Site.nextPageCursor
+            end
+            
+            for _, v in pairs(Site.data) do
+                local ID = tostring(v.id)
+                if tonumber(v.maxPlayers) > tonumber(v.playing) and AllIDs[ID] == nil then
+                    table.insert(AllIDs, 1, ID)
+                    if #AllIDs >= 20 then
+                        break
+                    end
+                end
+            end
+        end
+        
+        function Teleport()
+            while #AllIDs == 0 do
+                TPReturner()
+                wait(1)
+            end
+            
+            local id = AllIDs[math.random(1, #AllIDs)]
+            game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceId, id, game.Players.LocalPlayer)
+        end
+        
+        Teleport()
+    end    
+})
+
+SettingsTab:AddButton({
+    Name = "Destroy GUI",
+    Callback = function()
+        OrionLib:Destroy()
+    end    
+})
+
+-- Functions
+function startFlying()
+    local bodyVelocity = Instance.new("BodyVelocity")
+    local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+    
+    bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyAngularVelocity.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+    
+    bodyVelocity.Parent = RootPart
+    bodyAngularVelocity.Parent = RootPart
+    
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        if not flying then
+            connection:Disconnect()
+            return
+        end
+        
+        local camera = Workspace.CurrentCamera
+        local moveVector = Vector3.new(0, 0, 0)
+        
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveVector = moveVector + camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveVector = moveVector - camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveVector = moveVector - camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveVector = moveVector + camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveVector = moveVector + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            moveVector = moveVector - Vector3.new(0, 1, 0)
+        end
+        
+        bodyVelocity.Velocity = moveVector * flySpeed
+    end)
+end
+
+function stopFlying()
+    if RootPart:FindFirstChild("BodyVelocity") then
+        RootPart.BodyVelocity:Destroy()
+    end
+    if RootPart:FindFirstChild("BodyAngularVelocity") then
+        RootPart.BodyAngularVelocity:Destroy()
+    end
+end
+
+function enableESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local esp = Instance.new("BillboardGui")
+            local frame = Instance.new("Frame")
+            local nameLabel = Instance.new("TextLabel")
+            local healthLabel = Instance.new("TextLabel")
+            
+            esp.Name = "ESP"
+            esp.Size = UDim2.new(0, 200, 0, 100)
+            esp.StudsOffset = Vector3.new(0, 3, 0)
+            esp.Parent = player.Character.HumanoidRootPart
+            
+            frame.Size = UDim2.new(1, 0, 1, 0)
+            frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            frame.BackgroundTransparency = 0.5
+            frame.BorderSizePixel = 2
+            frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+            frame.Parent = esp
+            
+            nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = player.Name
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            nameLabel.TextStrokeTransparency = 0
+            nameLabel.TextScaled = true
+            nameLabel.Font = Enum.Font.SourceSansBold
+            nameLabel.Parent = frame
+            
+            healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
+            healthLabel.Position = UDim2.new(0, 0, 0.5, 0)
+            healthLabel.BackgroundTransparency = 1
+            healthLabel.Text = "HP: " .. math.floor(player.Character.Humanoid.Health)
+            healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+            healthLabel.TextStrokeTransparency = 0
+            healthLabel.TextScaled = true
+            healthLabel.Font = Enum.Font.SourceSans
+            healthLabel.Parent = frame
+            
+            spawn(function()
+                while esp.Parent do
+                    if player.Character and player.Character:FindFirstChild("Humanoid") then
+                        healthLabel.Text = "HP: " .. math.floor(player.Character.Humanoid.Health)
+                    end
+                    wait(0.1)
+                end
+            end)
+        end
+    end
+end
+
+function disableESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local esp = player.Character.HumanoidRootPart:FindFirstChild("ESP")
+            if esp then
+                esp:Destroy()
+            end
+        end
+    end
+end
+
+-- NoClip Handler
+RunService.Heartbeat:Connect(function()
+    if noclip and Character then
+        for _, part in pairs(Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- Infinite Jump Handler
+UserInputService.JumpRequest:Connect(function()
+    if infiniteJump then
+        Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- Character Reset Handler
+Player.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    Humanoid = Character:WaitForChild("Humanoid")
+    RootPart = Character:WaitForChild("HumanoidRootPart")
+    
+    if speedEnabled then
+        Humanoid.WalkSpeed = walkSpeed
+    end
+    if jumpEnabled then
+        Humanoid.JumpPower = jumpPower
+    end
+    if godMode then
+        Humanoid.MaxHealth = math.huge
+        Humanoid.Health = math.huge
+    end
+end)
+
+-- Initialize
+OrionLib:MakeNotification({
+    Name = "🌟 Neon Hub V2",
+    Content = "Successfully loaded! Created by XzgyX",
+    Image = "rbxassetid://4483345998",
+    Time = 5
+})
+
+print("===========================================")
+print("🌟 NEON HUB V2 LOADED SUCCESSFULLY! 🌟")
+print("Created by: XzgyX")
+print("UI Library: Orion")
+print("===========================================")
+
+OrionLib:Init()
