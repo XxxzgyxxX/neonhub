@@ -1,0 +1,1662 @@
+
+-- Neon Hub v2 - Blox Fruits Script
+-- Criador: XzgyX
+-- Sistema completo de auto farm, boss farm, mastery, PvP, e muito mais
+-- Compatível com Delta, Fluxus, Hydrogen (PC e Mobile)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- ===== CONFIGURAÇÕES GLOBAIS =====
+local NeonHub = {
+    Version = "2.0",
+    Creator = "XzgyX",
+    Settings = {
+        -- FARM
+        AutoFarm = false,
+        AutoQuest = false,
+        AutoBoss = false,
+        AutoMastery = false,
+        AutoSeaBeast = false,
+        AutoMaterial = false,
+        AutoCDK = false,
+        AutoYama = false,
+        AutoTushita = false,
+        AutoSaber = false,
+        AutoPole = false,
+        AutoBuddy = false,
+        
+        -- COMBAT
+        FastAttack = false,
+        AutoHaki = false,
+        AutoAura = false,
+        AutoSkills = false,
+        SkillZ = false,
+        SkillX = false,
+        SkillC = false,
+        SkillV = false,
+        SkillF = false,
+        KillAura = false,
+        Aimbot = false,
+        PvPCombo = false,
+        
+        -- FRUITS
+        AutoBuyFruit = false,
+        AutoEatFruit = false,
+        AutoStoreFruit = false,
+        AutoDropFruit = false,
+        FruitNotify = false,
+        FruitSniper = false,
+        
+        -- TELEPORT
+        TPToIsland = false,
+        TPToBoss = false,
+        TPToNPC = false,
+        SafeTP = false,
+        EmergencyTP = false,
+        
+        -- ESP
+        ESPPlayer = false,
+        ESPEnemy = false,
+        ESPFruit = false,
+        ESPChest = false,
+        ESPSeaBeast = false,
+        ESPIsland = false,
+        
+        -- MOVEMENT
+        Fly = false,
+        NoClip = false,
+        SpeedHack = false,
+        JumpHack = false,
+        InfiniteEnergy = false,
+        AntiFall = false,
+        
+        -- MISC
+        AntiAFK = false,
+        FPSBoost = false,
+        ServerHop = false,
+        AutoRejoin = false,
+        DiscordWebhook = "",
+        SaveConfig = false,
+        
+        -- STATS
+        AutoStats = false,
+        StatMelee = 70,
+        StatDefense = 20,
+        StatSword = 5,
+        StatGun = 0,
+        StatFruit = 5,
+        
+        -- VALUES
+        FlySpeed = 16,
+        WalkSpeed = 16,
+        JumpPower = 50,
+        AimbotFOV = 100,
+        KillAuraRange = 50,
+        FarmDistance = 20,
+        
+        -- SELECTED
+        SelectedWeapon = "Melee",
+        SelectedBoss = "All",
+        SelectedIsland = "Starter Island",
+        SelectedMaterial = "All",
+        FarmMode = "Level"
+    },
+    
+    -- DADOS DO JOGO
+    Islands = {
+        -- Sea 1
+        ["Starter Island"] = CFrame.new(1059, 16, 1543),
+        ["Jungle"] = CFrame.new(-60, 73, 1550),
+        ["Pirate Village"] = CFrame.new(-1181, 4, 3803),
+        ["Marine Base"] = CFrame.new(-2573, 6, 2046),
+        ["Middle Town"] = CFrame.new(-4541, 844, 3741),
+        ["Frozen Village"] = CFrame.new(1395, 87, -1482),
+        ["Marine Fortress"] = CFrame.new(-2994, 12, -2990),
+        ["Skypiea"] = CFrame.new(-4607, 872, -1667),
+        ["Prison"] = CFrame.new(4875, 5, 734),
+        ["Colosseum"] = CFrame.new(-1427, 7, -2792),
+        ["Magma Village"] = CFrame.new(-5247, 12, -4752),
+        ["Underwater City"] = CFrame.new(61123, 11, 1819),
+        ["Upper Skypiea"] = CFrame.new(-7894, 5547, -380),
+        
+        -- Sea 2
+        ["Kingdom of Rose"] = CFrame.new(-334, 20, 659),
+        ["Usoap's Island"] = CFrame.new(4816, 8, 2863),
+        ["Green Zone"] = CFrame.new(-2448, 73, -3210),
+        ["Swan's Room"] = CFrame.new(2284, 15, 905),
+        ["Hydra Island"] = CFrame.new(5749, 611, -276),
+        ["Mansion"] = CFrame.new(-12463, 374, -7523),
+        ["Cursed Ship"] = CFrame.new(923, 125, 32852),
+        ["Ice Castle"] = CFrame.new(6148, 294, -6741),
+        ["Forgotten Island"] = CFrame.new(-3032, 317, -10075),
+        ["Ussop Island"] = CFrame.new(4816, 8, 2863),
+        ["Mini Sky Island"] = CFrame.new(-288, 306, -2394),
+        
+        -- Sea 3
+        ["Port Town"] = CFrame.new(-290, 43, 5577),
+        ["Hydra Island"] = CFrame.new(5749, 611, -276),
+        ["Great Tree"] = CFrame.new(2681, 1682, -7190),
+        ["Castle on the Sea"] = CFrame.new(-5075, 314, -3150),
+        ["Haunted Castle"] = CFrame.new(-9515, 142, 5618),
+        ["Peanut Island"] = CFrame.new(-2062, 50, -10232),
+        ["Ice Cream Island"] = CFrame.new(-902, 79, -10988),
+        ["Cake Island"] = CFrame.new(-1884, 19, -11666),
+        ["Cocoa Island"] = CFrame.new(87, 73, -12297),
+        ["Candy Island"] = CFrame.new(-1014, 149, -14555),
+        ["Tiki Outpost"] = CFrame.new(-16545, 55, 1051)
+    },
+    
+    Bosses = {
+        -- Sea 1
+        ["The Gorilla King"] = {Level = 25, Island = "Jungle"},
+        ["Bobby"] = {Level = 55, Island = "Pirate Village"},
+        ["Yeti"] = {Level = 110, Island = "Frozen Village"},
+        ["Mob Leader"] = {Level = 120, Island = "Desert"},
+        ["Vice Admiral"] = {Level = 130, Island = "Marine Fortress"},
+        ["Warden"] = {Level = 220, Island = "Prison"},
+        ["Chief Warden"] = {Level = 230, Island = "Prison"},
+        ["Swan"] = {Level = 240, Island = "Prison"},
+        ["Magma Admiral"] = {Level = 350, Island = "Magma Village"},
+        ["Fishman Lord"] = {Level = 425, Island = "Underwater City"},
+        ["Wysper"] = {Level = 500, Island = "Upper Skypiea"},
+        ["Thunder God"] = {Level = 575, Island = "Upper Skypiea"},
+        
+        -- Sea 2
+        ["Diamond"] = {Level = 750, Island = "Kingdom of Rose"},
+        ["Jeremy"] = {Level = 850, Island = "Kingdom of Rose"},
+        ["Fajita"] = {Level = 925, Island = "Green Zone"},
+        ["Don Swan"] = {Level = 1000, Island = "Swan's Room"},
+        ["Smoke Admiral"] = {Level = 1150, Island = "Usoap's Island"},
+        ["Cursed Captain"] = {Level = 1325, Island = "Cursed Ship"},
+        ["Darkbeard"] = {Level = 1000, Island = "Dark Arena"},
+        ["Order"] = {Level = 1250, Island = "Colosseum"},
+        ["Awakened Ice Admiral"] = {Level = 1400, Island = "Ice Castle"},
+        
+        -- Sea 3
+        ["Stone"] = {Level = 1550, Island = "Port Town"},
+        ["Island Empress"] = {Level = 1675, Island = "Amazon"},
+        ["Kilo Admiral"] = {Level = 1750, Island = "Marine Fortress"},
+        ["Captain Elephant"] = {Level = 1875, Island = "Floating Turtle"},
+        ["Beautiful Pirate"] = {Level = 1950, Island = "Hydra Island"},
+        ["rip_indra True Form"] = {Level = 5000, Island = "Mansion"},
+        ["Longma"] = {Level = 2000, Island = "Tiki Outpost"},
+        ["Soul Reaper"] = {Level = 2100, Island = "Haunted Castle"},
+        ["Cake Queen"] = {Level = 2175, Island = "Cake Island"}
+    },
+    
+    Materials = {
+        "Magma Ore", "Angel Wings", "Leather", "Scrap Metal", "Fish Tail",
+        "Mystic Droplet", "Fabric", "Gunpowder", "Vampire Fang", "Radioactive Material",
+        "Mini Tusk", "Dragon Scale", "Conjured Cocoa", "Demonic Wisp", "Bones"
+    },
+    
+    Fruits = {
+        "Kilo", "Spin", "Spring", "Bomb", "Smoke", "Spike", "Flame", "Falcon",
+        "Ice", "Sand", "Dark", "Diamond", "Light", "Rubber", "Barrier", "Ghost",
+        "Magma", "Quake", "Buddha", "Love", "Spider", "Sound", "Phoenix", "Portal",
+        "Rumble", "Pain", "Blizzard", "Gravity", "Mammoth", "T-Rex", "Dough",
+        "Shadow", "Venom", "Control", "Spirit", "Dragon", "Leopard", "Kitsune"
+    },
+    
+    -- ESTADO DO SCRIPT
+    CurrentTarget = nil,
+    LastAttack = 0,
+    GUI = nil,
+    Connections = {},
+    ESPObjects = {},
+    FlyConnection = nil,
+    IsFlying = false,
+    SavedPosition = nil
+}
+
+-- ===== FUNÇÕES UTILITÁRIAS =====
+function getLevel()
+    return player.Data.Level.Value or 1
+end
+
+function getPlayerSea()
+    local level = getLevel()
+    if level < 700 then return 1
+    elseif level < 1500 then return 2
+    else return 3 end
+end
+
+function getBeli()
+    return player.Data.Beli.Value or 0
+end
+
+function getFragments()
+    return player.Data.Fragments.Value or 0
+end
+
+function getCurrentIsland()
+    local playerPos = rootPart.Position
+    local closestIsland = "Unknown"
+    local closestDistance = math.huge
+    
+    for island, pos in pairs(NeonHub.Islands) do
+        local distance = (playerPos - pos.Position).Magnitude
+        if distance < closestDistance then
+            closestDistance = distance
+            closestIsland = island
+        end
+    end
+    
+    return closestIsland
+end
+
+-- ===== SISTEMA DE TELEPORTE AVANÇADO =====
+function safeTeleport(cframe, speed)
+    if not cframe then return false end
+    speed = speed or 300
+    
+    local distance = (rootPart.Position - cframe.Position).Magnitude
+    local time = distance / speed
+    
+    if time > 10 then time = 10 end
+    if time < 0.5 then time = 0.5 end
+    
+    local tween = TweenService:Create(
+        rootPart,
+        TweenInfo.new(time, Enum.EasingStyle.Linear),
+        {CFrame = cframe}
+    )
+    
+    tween:Play()
+    
+    if NeonHub.Settings.SafeTP then
+        tween.Completed:Wait()
+    end
+    
+    return true
+end
+
+function instantTeleport(cframe)
+    if not cframe then return false end
+    rootPart.CFrame = cframe
+    return true
+end
+
+function teleportToIsland(islandName)
+    local cframe = NeonHub.Islands[islandName]
+    if cframe then
+        print("🧭 Navegando para " .. islandName)
+        return safeTeleport(cframe)
+    end
+    return false
+end
+
+-- ===== SISTEMA DE QUESTS AVANÇADO =====
+function getQuestForLevel(level)
+    local questData = {
+        -- Sea 1
+        {level = 1, npc = "Bandit Quest Giver", enemy = "Bandit", island = "Jungle", questName = "BanditQuest1"},
+        {level = 15, npc = "Monkey Quest Giver", enemy = "Monkey", island = "Jungle", questName = "JungleQuest"},
+        {level = 30, npc = "Gorilla Quest Giver", enemy = "Gorilla", island = "Jungle", questName = "JungleQuest"},
+        {level = 60, npc = "Pirate Quest Giver", enemy = "Pirate", island = "Pirate Village", questName = "Area1Quest"},
+        {level = 75, npc = "Brute Quest Giver", enemy = "Brute", island = "Pirate Village", questName = "Area1Quest"},
+        {level = 90, npc = "Desert Bandit Quest Giver", enemy = "Desert Bandit", island = "Desert", questName = "DesertQuest"},
+        {level = 100, npc = "Desert Officer Quest Giver", enemy = "Desert Officer", island = "Desert", questName = "DesertQuest"},
+        {level = 120, npc = "Snow Bandit Quest Giver", enemy = "Snow Bandit", island = "Frozen Village", questName = "SnowQuest"},
+        {level = 150, npc = "Snowman Quest Giver", enemy = "Snowman", island = "Frozen Village", questName = "SnowQuest"},
+        {level = 175, npc = "Chief Petty Officer Quest Giver", enemy = "Chief Petty Officer", island = "Marine Base", questName = "MarineQuest2"},
+        {level = 190, npc = "Sky Bandit Quest Giver", enemy = "Sky Bandit", island = "Skypiea", questName = "SkyQuest"},
+        {level = 210, npc = "Dark Master Quest Giver", enemy = "Dark Master", island = "Skypiea", questName = "SkyQuest"},
+        {level = 230, npc = "Prisoner Quest Giver", enemy = "Prisoner", island = "Prison", questName = "PrisonerQuest"},
+        {level = 250, npc = "Dangerous Prisoner Quest Giver", enemy = "Dangerous Prisoner", island = "Prison", questName = "PrisonerQuest"},
+        {level = 275, npc = "Toga Warrior Quest Giver", enemy = "Toga Warrior", island = "Colosseum", questName = "ColosseumQuest"},
+        {level = 300, npc = "Gladiator Quest Giver", enemy = "Gladiator", island = "Colosseum", questName = "ColosseumQuest"},
+        {level = 325, npc = "Military Soldier Quest Giver", enemy = "Military Soldier", island = "Magma Village", questName = "MagmaQuest"},
+        {level = 350, npc = "Military Spy Quest Giver", enemy = "Military Spy", island = "Magma Village", questName = "MagmaQuest"},
+        {level = 375, npc = "Fishman Warrior Quest Giver", enemy = "Fishman Warrior", island = "Underwater City", questName = "FishmanQuest"},
+        {level = 400, npc = "Fishman Commando Quest Giver", enemy = "Fishman Commando", island = "Underwater City", questName = "FishmanQuest"},
+        {level = 450, npc = "God's Guard Quest Giver", enemy = "God's Guard", island = "Upper Skypiea", questName = "SkyExp1Quest"},
+        {level = 475, npc = "Shanda Quest Giver", enemy = "Shanda", island = "Upper Skypiea", questName = "SkyExp1Quest"},
+        {level = 500, npc = "Royal Squad Quest Giver", enemy = "Royal Squad", island = "Upper Skypiea", questName = "SkyExp2Quest"},
+        {level = 525, npc = "Royal Soldier Quest Giver", enemy = "Royal Soldier", island = "Upper Skypiea", questName = "SkyExp2Quest"},
+        {level = 550, npc = "Galley Pirate Quest Giver", enemy = "Galley Pirate", island = "Fountain City", questName = "FountainQuest"},
+        {level = 625, npc = "Galley Captain Quest Giver", enemy = "Galley Captain", island = "Fountain City", questName = "FountainQuest"},
+        
+        -- Sea 2
+        {level = 700, npc = "Raider Quest Giver", enemy = "Raider", island = "Kingdom of Rose", questName = "Area1Quest"},
+        {level = 725, npc = "Mercenary Quest Giver", enemy = "Mercenary", island = "Kingdom of Rose", questName = "Area1Quest"},
+        {level = 750, npc = "Swan Pirate Quest Giver", enemy = "Swan Pirate", island = "Kingdom of Rose", questName = "Area2Quest"},
+        {level = 775, npc = "Factory Staff Quest Giver", enemy = "Factory Staff", island = "Kingdom of Rose", questName = "Area2Quest"},
+        {level = 800, npc = "Marine Lieutenant Quest Giver", enemy = "Marine Lieutenant", island = "Usoap's Island", questName = "MarineQuest3"},
+        {level = 825, npc = "Marine Captain Quest Giver", enemy = "Marine Captain", island = "Usoap's Island", questName = "MarineQuest3"},
+        {level = 850, npc = "Zombie Quest Giver", enemy = "Zombie", island = "Cursed Ship", questName = "ZombieQuest"},
+        {level = 875, npc = "Vampire Quest Giver", enemy = "Vampire", island = "Cursed Ship", questName = "ZombieQuest"},
+        {level = 900, npc = "Snow Trooper Quest Giver", enemy = "Snow Trooper", island = "Ice Castle", questName = "IceSideQuest"},
+        {level = 925, npc = "Winter Warrior Quest Giver", enemy = "Winter Warrior", island = "Ice Castle", questName = "IceSideQuest"},
+        {level = 950, npc = "Lab Subordinate Quest Giver", enemy = "Lab Subordinate", island = "Forgotten Island", questName = "IceQuest"},
+        {level = 975, npc = "Horned Warrior Quest Giver", enemy = "Horned Warrior", island = "Forgotten Island", questName = "IceQuest"},
+        {level = 1000, npc = "Magma Ninja Quest Giver", enemy = "Magma Ninja", island = "Hot and Cold", questName = "FireSideQuest"},
+        {level = 1025, npc = "Lava Pirate Quest Giver", enemy = "Lava Pirate", island = "Hot and Cold", questName = "FireSideQuest"},
+        {level = 1050, npc = "Ship Deckhand Quest Giver", enemy = "Ship Deckhand", island = "Ship", questName = "ShipQuest1"},
+        {level = 1075, npc = "Ship Engineer Quest Giver", enemy = "Ship Engineer", island = "Ship", questName = "ShipQuest1"},
+        {level = 1100, npc = "Ship Steward Quest Giver", enemy = "Ship Steward", island = "Ship", questName = "ShipQuest2"},
+        {level = 1125, npc = "Ship Officer Quest Giver", enemy = "Ship Officer", island = "Ship", questName = "ShipQuest2"},
+        {level = 1150, npc = "Arctic Warrior Quest Giver", enemy = "Arctic Warrior", island = "Frost", questName = "FrostQuest"},
+        {level = 1175, npc = "Snow Lurker Quest Giver", enemy = "Snow Lurker", island = "Frost", questName = "FrostQuest"},
+        {level = 1200, npc = "Sea Soldier Quest Giver", enemy = "Sea Soldier", island = "Forgotten Island", questName = "ForgottenQuest"},
+        {level = 1225, npc = "Water Fighter Quest Giver", enemy = "Water Fighter", island = "Forgotten Island", questName = "ForgottenQuest"},
+        
+        -- Sea 3
+        {level = 1500, npc = "Pirate Millionaire Quest Giver", enemy = "Pirate Millionaire", island = "Port Town", questName = "PiratePortQuest"},
+        {level = 1525, npc = "Pistol Billionaire Quest Giver", enemy = "Pistol Billionaire", island = "Port Town", questName = "PiratePortQuest"},
+        {level = 1550, npc = "Dragon Crew Warrior Quest Giver", enemy = "Dragon Crew Warrior", island = "Amazon", questName = "AmazonQuest"},
+        {level = 1575, npc = "Dragon Crew Archer Quest Giver", enemy = "Dragon Crew Archer", island = "Amazon", questName = "AmazonQuest2"},
+        {level = 1600, npc = "Female Islander Quest Giver", enemy = "Female Islander", island = "Amazon", questName = "AmazonQuest2"},
+        {level = 1625, npc = "Giant Islander Quest Giver", enemy = "Giant Islander", island = "Amazon", questName = "AmazonQuest2"},
+        {level = 1650, npc = "Marine Commodore Quest Giver", enemy = "Marine Commodore", island = "Marine Fortress", questName = "MarineTreeIsland"},
+        {level = 1675, npc = "Marine Rear Admiral Quest Giver", enemy = "Marine Rear Admiral", island = "Marine Fortress", questName = "MarineTreeIsland"},
+        {level = 1700, npc = "Fishman Raider Quest Giver", enemy = "Fishman Raider", island = "Deep Forest", questName = "DeepForestIsland"},
+        {level = 1725, npc = "Fishman Captain Quest Giver", enemy = "Fishman Captain", island = "Deep Forest", questName = "DeepForestIsland2"},
+        {level = 1750, npc = "Forest Pirate Quest Giver", enemy = "Forest Pirate", island = "Deep Forest", questName = "DeepForestIsland2"},
+        {level = 1775, npc = "Mythological Pirate Quest Giver", enemy = "Mythological Pirate", island = "Deep Forest", questName = "DeepForestIsland3"},
+        {level = 1800, npc = "Jungle Pirate Quest Giver", enemy = "Jungle Pirate", island = "Deep Forest", questName = "DeepForestIsland3"},
+        {level = 1825, npc = "Musketeer Pirate Quest Giver", enemy = "Musketeer Pirate", island = "Castle on the Sea", questName = "DeepForestIsland3"},
+        {level = 1850, npc = "Reborn Skeleton Quest Giver", enemy = "Reborn Skeleton", island = "Haunted Castle", questName = "HauntedQuest1"},
+        {level = 1875, npc = "Living Zombie Quest Giver", enemy = "Living Zombie", island = "Haunted Castle", questName = "HauntedQuest1"},
+        {level = 1900, npc = "Demonic Soul Quest Giver", enemy = "Demonic Soul", island = "Haunted Castle", questName = "HauntedQuest2"},
+        {level = 1925, npc = "Posessed Mummy Quest Giver", enemy = "Posessed Mummy", island = "Haunted Castle", questName = "HauntedQuest2"},
+        {level = 1950, npc = "Peanut Scout Quest Giver", enemy = "Peanut Scout", island = "Peanut Island", questName = "NutsIslandQuest"},
+        {level = 1975, npc = "Peanut President Quest Giver", enemy = "Peanut President", island = "Peanut Island", questName = "NutsIslandQuest"},
+        {level = 2000, npc = "Ice Cream Chef Quest Giver", enemy = "Ice Cream Chef", island = "Ice Cream Island", questName = "IceCreamIslandQuest"},
+        {level = 2025, npc = "Ice Cream Commander Quest Giver", enemy = "Ice Cream Commander", island = "Ice Cream Island", questName = "IceCreamIslandQuest"},
+        {level = 2050, npc = "Cookie Crafter Quest Giver", enemy = "Cookie Crafter", island = "Cake Island", questName = "CakeQuest1"},
+        {level = 2075, npc = "Cake Guard Quest Giver", enemy = "Cake Guard", island = "Cake Island", questName = "CakeQuest1"},
+        {level = 2100, npc = "Baking Staff Quest Giver", enemy = "Baking Staff", island = "Cake Island", questName = "CakeQuest2"},
+        {level = 2125, npc = "Head Baker Quest Giver", enemy = "Head Baker", island = "Cake Island", questName = "CakeQuest2"},
+        {level = 2150, npc = "Cocoa Warrior Quest Giver", enemy = "Cocoa Warrior", island = "Cocoa Island", questName = "ChocQuest1"},
+        {level = 2175, npc = "Chocolate Bar Battler Quest Giver", enemy = "Chocolate Bar Battler", island = "Cocoa Island", questName = "ChocQuest1"},
+        {level = 2200, npc = "Sweet Thief Quest Giver", enemy = "Sweet Thief", island = "Candy Island", questName = "ChocQuest2"},
+        {level = 2225, npc = "Candy Rebel Quest Giver", enemy = "Candy Rebel", island = "Candy Island", questName = "ChocQuest2"},
+        {level = 2250, npc = "Candy Pirate Quest Giver", enemy = "Candy Pirate", island = "Candy Island", questName = "CandyQuest1"},
+        {level = 2275, npc = "Snow Demon Quest Giver", enemy = "Snow Demon", island = "Candy Island", questName = "CandyQuest1"},
+        {level = 2300, npc = "Isle Outlaw Quest Giver", enemy = "Isle Outlaw", island = "Tiki Outpost", questName = "TikiQuest1"},
+        {level = 2325, npc = "Island Boy Quest Giver", enemy = "Island Boy", island = "Tiki Outpost", questName = "TikiQuest1"},
+        {level = 2350, npc = "Sun-kissed Warrior Quest Giver", enemy = "Sun-kissed Warrior", island = "Tiki Outpost", questName = "TikiQuest2"},
+        {level = 2375, npc = "Isle Champion Quest Giver", enemy = "Isle Champion", island = "Tiki Outpost", questName = "TikiQuest2"}
+    }
+    
+    local bestQuest = questData[1]
+    for _, quest in pairs(questData) do
+        if level >= quest.level then
+            bestQuest = quest
+        end
+    end
+    
+    return bestQuest
+end
+
+function acceptQuest()
+    if not NeonHub.Settings.AutoQuest then return false end
+    
+    local level = getLevel()
+    local quest = getQuestForLevel(level)
+    
+    if not quest then return false end
+    
+    -- Verifica se já tem a quest ativa
+    local questProgress = player.PlayerGui.Main.Quest
+    if questProgress.Visible and questProgress.Container.QuestTitle.Title.Text == quest.enemy then
+        return true
+    end
+    
+    -- Vai para a ilha da quest se necessário
+    if getCurrentIsland() ~= quest.island then
+        teleportToIsland(quest.island)
+        wait(3)
+    end
+    
+    -- Procura o NPC da quest
+    local questNPC = nil
+    for _, npc in pairs(Workspace.NPCs:GetChildren()) do
+        if npc.Name:find(quest.npc) or npc.Name == quest.npc then
+            questNPC = npc
+            break
+        end
+    end
+    
+    if questNPC and questNPC:FindFirstChild("HumanoidRootPart") then
+        safeTeleport(questNPC.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3))
+        wait(1)
+        
+        -- Aceita a quest
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", quest.questName, 1)
+        print("✅ Quest aceita: " .. quest.enemy)
+        return true
+    end
+    
+    return false
+end
+
+-- ===== SISTEMA DE COMBATE ULTRA AVANÇADO =====
+function getNearestEnemy(targetName)
+    targetName = targetName or nil
+    
+    local nearestEnemy = nil
+    local nearestDistance = math.huge
+    
+    -- Se não especificou target, pega pela quest atual
+    if not targetName then
+        local level = getLevel()
+        local quest = getQuestForLevel(level)
+        targetName = quest.enemy
+    end
+    
+    for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+        if (targetName == "All" or enemy.Name == targetName) and 
+           enemy:FindFirstChild("HumanoidRootPart") and 
+           enemy:FindFirstChild("Humanoid") and
+           enemy.Humanoid.Health > 0 then
+            
+            local distance = (rootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+            if distance < nearestDistance and distance <= NeonHub.Settings.FarmDistance then
+                nearestDistance = distance
+                nearestEnemy = enemy
+            end
+        end
+    end
+    
+    return nearestEnemy
+end
+
+function getNearestBoss()
+    local nearestBoss = nil
+    local nearestDistance = math.huge
+    
+    for _, boss in pairs(Workspace.Enemies:GetChildren()) do
+        if NeonHub.Bosses[boss.Name] and 
+           boss:FindFirstChild("HumanoidRootPart") and 
+           boss:FindFirstChild("Humanoid") and
+           boss.Humanoid.Health > 0 then
+            
+            local distance = (rootPart.Position - boss.HumanoidRootPart.Position).Magnitude
+            if distance < nearestDistance then
+                nearestDistance = distance
+                nearestBoss = boss
+            end
+        end
+    end
+    
+    return nearestBoss
+end
+
+function useSkill(key)
+    if not NeonHub.Settings.AutoSkills then return end
+    
+    local skillSettings = {
+        ["Z"] = NeonHub.Settings.SkillZ,
+        ["X"] = NeonHub.Settings.SkillX,
+        ["C"] = NeonHub.Settings.SkillC,
+        ["V"] = NeonHub.Settings.SkillV,
+        ["F"] = NeonHub.Settings.SkillF
+    }
+    
+    if skillSettings[key] then
+        VirtualInputManager:SendKeyEvent(true, key, false, game)
+        wait(0.1)
+        VirtualInputManager:SendKeyEvent(false, key, false, game)
+    end
+end
+
+function fastAttack()
+    if not NeonHub.Settings.FastAttack then return end
+    
+    local currentTime = tick()
+    if currentTime - NeonHub.LastAttack < 0.1 then return end
+    
+    NeonHub.LastAttack = currentTime
+    
+    -- Bypass de fast attack
+    local camera = Workspace.CurrentCamera
+    local ac = CombatFramework.activeController
+    
+    if ac and ac.equipped then
+        for i = 1, 1 do
+            local bladehit = require(game.ReplicatedStorage.CombatFramework.RigLib).getBladeHits(
+                character,
+                {character.HumanoidRootPart},
+                60
+            )
+            local cameraLook = camera.CFrame.lookVector * -1
+            local dmg = math.huge
+            if bladehit then
+                pcall(function()
+                    ac.timeToNextAttack = 0
+                    ac.attacking = false
+                    ac.timeToNextBlock = 0
+                    ac.focusStart = 1655503339.0987349
+                    ac.increment = 4
+                    ac.blocking = false
+                    ac.hitboxMagnitude = 60
+                    game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("weaponChange",tostring(getToolName()))
+                    game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("hit", bladehit, i, "")
+                end)
+            end
+        end
+    end
+end
+
+function equipBestWeapon()
+    local weaponPriority = {"Melee", "Sword", "Gun"}
+    
+    for _, weaponType in pairs(weaponPriority) do
+        for _, tool in pairs(player.Backpack:GetChildren()) do
+            if tool:IsA("Tool") and tool.ToolTip == weaponType then
+                humanoid:EquipTool(tool)
+                return
+            end
+        end
+    end
+end
+
+function attackEnemy(enemy)
+    if not enemy or not enemy:FindFirstChild("HumanoidRootPart") or not enemy:FindFirstChild("Humanoid") then return end
+    if enemy.Humanoid.Health <= 0 then return end
+    
+    local enemyPos = enemy.HumanoidRootPart.Position
+    local distance = (rootPart.Position - enemyPos).Magnitude
+    
+    -- Teleporta para perto do inimigo
+    if distance > 15 then
+        safeTeleport(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, -10))
+    end
+    
+    -- Equipa a melhor arma
+    equipBestWeapon()
+    
+    -- Ativa Haki
+    if NeonHub.Settings.AutoHaki then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+    end
+    
+    if NeonHub.Settings.AutoAura then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Ken", true)
+    end
+    
+    -- Usa skills em sequência com delay
+    useSkill("Z")
+    wait(0.3)
+    useSkill("X")
+    wait(0.3)
+    useSkill("C")
+    wait(0.3)
+    useSkill("V")
+    wait(0.3)
+    useSkill("F")
+    
+    -- Ataque rápido contínuo
+    for i = 1, 10 do
+        fastAttack()
+        wait(0.05)
+    end
+end
+
+-- ===== SISTEMA DE FARM DE BOSSES AVANÇADO =====
+function farmBoss()
+    if not NeonHub.Settings.AutoBoss then return false end
+    
+    local boss = getNearestBoss()
+    
+    if boss then
+        print("🔥 Atacando boss: " .. boss.Name)
+        NeonHub.CurrentTarget = boss.Name
+        attackEnemy(boss)
+        return true
+    else
+        print("⏳ Aguardando respawn de boss...")
+        return false
+    end
+end
+
+-- ===== SISTEMA DE AUTO STATS INTELIGENTE =====
+function autoStats()
+    if not NeonHub.Settings.AutoStats then return end
+    
+    local statsPoints = player.Data.Points.Value
+    if statsPoints <= 0 then return end
+    
+    local currentStats = {
+        Melee = player.Data.Stats.Melee.Level.Value,
+        Defense = player.Data.Stats.Defense.Level.Value,
+        Sword = player.Data.Stats.Sword.Level.Value,
+        Gun = player.Data.Stats.Gun.Level.Value,
+        Fruit = player.Data.Stats["Demon Fruit"].Level.Value
+    }
+    
+    local level = getLevel()
+    
+    -- Calcula os stats ideais baseados no level e configurações
+    local targetStats = {
+        Melee = math.floor(level * (NeonHub.Settings.StatMelee / 100)),
+        Defense = math.floor(level * (NeonHub.Settings.StatDefense / 100)),
+        Sword = math.floor(level * (NeonHub.Settings.StatSword / 100)),
+        Gun = math.floor(level * (NeonHub.Settings.StatGun / 100)),
+        Fruit = math.floor(level * (NeonHub.Settings.StatFruit / 100))
+    }
+    
+    -- Distribui os pontos por prioridade
+    if currentStats.Melee < targetStats.Melee then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", 1)
+    elseif currentStats.Defense < targetStats.Defense then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Defense", 1)
+    elseif currentStats.Sword < targetStats.Sword then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Sword", 1)
+    elseif currentStats.Fruit < targetStats.Fruit then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", 1)
+    elseif currentStats.Gun < targetStats.Gun then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Gun", 1)
+    end
+end
+
+-- ===== SISTEMA DE FRUTAS AVANÇADO =====
+function buyFruit(fruitName)
+    if not NeonHub.Settings.AutoBuyFruit then return false end
+    
+    local success = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", fruitName)
+    if success then
+        print("🍍 Fruta comprada: " .. fruitName)
+        return true
+    end
+    return false
+end
+
+function eatFruit(fruitName)
+    if not NeonHub.Settings.AutoEatFruit then return false end
+    
+    for _, tool in pairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:find("Fruit") and tool.Name:find(fruitName) then
+            humanoid:EquipTool(tool)
+            wait(0.5)
+            tool:Activate()
+            print("🍍 Fruta consumida: " .. fruitName)
+            return true
+        end
+    end
+    return false
+end
+
+function storeFruit()
+    if not NeonHub.Settings.AutoStoreFruit then return end
+    
+    for _, tool in pairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:find("Fruit") then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit", tool.Name)
+            print("🍍 Fruta armazenada: " .. tool.Name)
+        end
+    end
+end
+
+function dropFruit()
+    if not NeonHub.Settings.AutoDropFruit then return end
+    
+    for _, tool in pairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:find("Fruit") then
+            humanoid:EquipTool(tool)
+            wait(0.5)
+            humanoid:UnequipTools()
+            print("🍍 Fruta dropada: " .. tool.Name)
+        end
+    end
+end
+
+-- ===== SISTEMA ESP AVANÇADO =====
+function createESP(object, color, text)
+    if NeonHub.ESPObjects[object] then return end
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "NeonESP"
+    billboardGui.Adornee = object
+    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.Parent = game.CoreGui
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundColor3 = color
+    frame.BackgroundTransparency = 0.5
+    frame.BorderSizePixel = 0
+    frame.Parent = billboardGui
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = text
+    textLabel.TextColor3 = Color3.white
+    textLabel.TextScaled = true
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.Parent = frame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 5)
+    corner.Parent = frame
+    
+    NeonHub.ESPObjects[object] = billboardGui
+end
+
+function removeESP(object)
+    if NeonHub.ESPObjects[object] then
+        NeonHub.ESPObjects[object]:Destroy()
+        NeonHub.ESPObjects[object] = nil
+    end
+end
+
+function updatePlayerESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            if NeonHub.Settings.ESPPlayer then
+                createESP(player.Character.HumanoidRootPart, Color3.fromRGB(0, 255, 0), player.Name)
+            else
+                removeESP(player.Character.HumanoidRootPart)
+            end
+        end
+    end
+end
+
+function updateEnemyESP()
+    for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+        if enemy:FindFirstChild("HumanoidRootPart") then
+            if NeonHub.Settings.ESPEnemy then
+                local color = NeonHub.Bosses[enemy.Name] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(255, 255, 0)
+                createESP(enemy.HumanoidRootPart, color, enemy.Name)
+            else
+                removeESP(enemy.HumanoidRootPart)
+            end
+        end
+    end
+end
+
+function updateFruitESP()
+    for _, fruit in pairs(Workspace:GetChildren()) do
+        if fruit.Name:find("Fruit") and fruit:FindFirstChild("Handle") then
+            if NeonHub.Settings.ESPFruit then
+                createESP(fruit.Handle, Color3.fromRGB(255, 0, 255), fruit.Name)
+            else
+                removeESP(fruit.Handle)
+            end
+        end
+    end
+end
+
+-- ===== SISTEMA DE MOVIMENTO AVANÇADO =====
+function toggleFly()
+    if NeonHub.IsFlying then
+        stopFly()
+    else
+        startFly()
+    end
+end
+
+function startFly()
+    if NeonHub.IsFlying then return end
+    
+    NeonHub.IsFlying = true
+    
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Parent = rootPart
+    
+    local bodyPosition = Instance.new("BodyPosition")
+    bodyPosition.MaxForce = Vector3.new(4000, 4000, 4000)
+    bodyPosition.Position = rootPart.Position
+    bodyPosition.Parent = rootPart
+    
+    NeonHub.FlyConnection = RunService.Heartbeat:Connect(function()
+        if not NeonHub.Settings.Fly then
+            stopFly()
+            return
+        end
+        
+        local camera = Workspace.CurrentCamera
+        local moveVector = Vector3.new(0, 0, 0)
+        
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveVector = moveVector + camera.CFrame.lookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveVector = moveVector - camera.CFrame.lookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveVector = moveVector - camera.CFrame.rightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveVector = moveVector + camera.CFrame.rightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveVector = moveVector + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            moveVector = moveVector - Vector3.new(0, 1, 0)
+        end
+        
+        bodyVelocity.Velocity = moveVector * NeonHub.Settings.FlySpeed
+        bodyPosition.Position = rootPart.Position + (moveVector * 0.5)
+    end)
+    
+    print("✈️ Fly ativado")
+end
+
+function stopFly()
+    if not NeonHub.IsFlying then return end
+    
+    NeonHub.IsFlying = false
+    
+    if NeonHub.FlyConnection then
+        NeonHub.FlyConnection:Disconnect()
+        NeonHub.FlyConnection = nil
+    end
+    
+    for _, obj in pairs(rootPart:GetChildren()) do
+        if obj:IsA("BodyVelocity") or obj:IsA("BodyPosition") then
+            obj:Destroy()
+        end
+    end
+    
+    print("✈️ Fly desativado")
+end
+
+function toggleNoClip()
+    NeonHub.Settings.NoClip = not NeonHub.Settings.NoClip
+    
+    if NeonHub.Settings.NoClip then
+        NeonHub.Connections.NoClip = RunService.Stepped:Connect(function()
+            for _, part in pairs(character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end)
+        print("👻 NoClip ativado")
+    else
+        if NeonHub.Connections.NoClip then
+            NeonHub.Connections.NoClip:Disconnect()
+            NeonHub.Connections.NoClip = nil
+        end
+        
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                part.CanCollide = true
+            end
+        end
+        print("👻 NoClip desativado")
+    end
+end
+
+function setWalkSpeed(speed)
+    if humanoid then
+        humanoid.WalkSpeed = speed
+    end
+end
+
+function setJumpPower(power)
+    if humanoid then
+        humanoid.JumpPower = power
+    end
+end
+
+-- ===== SISTEMA ANTI-AFK E MISC =====
+function antiAFK()
+    if not NeonHub.Settings.AntiAFK then return end
+    
+    -- Move ligeiramente o mouse
+    VirtualInputManager:SendMouseMoveEvent(1, 1, game)
+    wait(0.1)
+    VirtualInputManager:SendMouseMoveEvent(-1, -1, game)
+end
+
+function boostFPS()
+    if not NeonHub.Settings.FPSBoost then return end
+    
+    -- Remove efeitos visuais pesados
+    for _, effect in pairs(Lighting:GetChildren()) do
+        if effect:IsA("PostEffect") then
+            effect.Enabled = false
+        end
+    end
+    
+    -- Reduz qualidade visual
+    settings().Rendering.QualityLevel = 1
+    game:GetService("UserInputService").MouseIconEnabled = false
+end
+
+function serverHop()
+    if not NeonHub.Settings.ServerHop then return end
+    
+    local Http = game:GetService("HttpService")
+    local TPS = game:GetService("TeleportService")
+    
+    local success, result = pcall(function()
+        return Http:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+    end)
+    
+    if success and result.data then
+        for _, server in pairs(result.data) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                TPS:TeleportToPlaceInstance(game.PlaceId, server.id, player)
+                break
+            end
+        end
+    end
+end
+
+-- ===== SISTEMA DE NOTIFICAÇÕES =====
+function notify(title, text, duration)
+    duration = duration or 5
+    
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = duration,
+        Icon = "rbxassetid://6023426923"
+    })
+end
+
+function sendWebhook(message)
+    if NeonHub.Settings.DiscordWebhook == "" then return end
+    
+    local data = {
+        ["content"] = message,
+        ["username"] = "Neon Hub v2",
+        ["avatar_url"] = "https://i.imgur.com/4M34hi2.png"
+    }
+    
+    local success, result = pcall(function()
+        return game:GetService("HttpService"):PostAsync(
+            NeonHub.Settings.DiscordWebhook,
+            game:GetService("HttpService"):JSONEncode(data),
+            Enum.HttpContentType.ApplicationJson
+        )
+    end)
+    
+    if success then
+        print("📡 Webhook enviado: " .. message)
+    end
+end
+
+-- ===== INTERFACE GRÁFICA COMPLETA =====
+function createGUI()
+    -- Remove GUI anterior se existir
+    if NeonHub.GUI then
+        NeonHub.GUI:Destroy()
+    end
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "NeonHubV2"
+    screenGui.Parent = game.CoreGui
+    screenGui.ResetOnSpawn = false
+    
+    -- Frame principal
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 500, 0, 700)
+    mainFrame.Position = UDim2.new(0, 50, 0, 50)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Active = true
+    mainFrame.Draggable = true
+    mainFrame.Parent = screenGui
+    
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 12)
+    mainCorner.Parent = mainFrame
+    
+    -- Barra de título
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 60)
+    titleBar.Position = UDim2.new(0, 0, 0, 0)
+    titleBar.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = mainFrame
+    
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.Parent = titleBar
+    
+    local titleBottomCover = Instance.new("Frame")
+    titleBottomCover.Size = UDim2.new(1, 0, 0, 12)
+    titleBottomCover.Position = UDim2.new(0, 0, 1, -12)
+    titleBottomCover.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    titleBottomCover.BorderSizePixel = 0
+    titleBottomCover.Parent = titleBar
+    
+    -- Título
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, -120, 1, 0)
+    title.Position = UDim2.new(0, 20, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "💎 Neon Hub v2 - By XzgyX"
+    title.TextColor3 = Color3.white
+    title.TextSize = 20
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Font = Enum.Font.GothamBold
+    title.Parent = titleBar
+    
+    -- Botão fechar
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 40, 0, 40)
+    closeButton.Position = UDim2.new(1, -50, 0, 10)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    closeButton.Text = "✕"
+    closeButton.TextColor3 = Color3.white
+    closeButton.TextSize = 18
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Parent = titleBar
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 8)
+    closeCorner.Parent = closeButton
+    
+    closeButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+    
+    -- Botão minimizar
+    local minimizeButton = Instance.new("TextButton")
+    minimizeButton.Name = "MinimizeButton"
+    minimizeButton.Size = UDim2.new(0, 40, 0, 40)
+    minimizeButton.Position = UDim2.new(1, -100, 0, 10)
+    minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+    minimizeButton.Text = "─"
+    minimizeButton.TextColor3 = Color3.white
+    minimizeButton.TextSize = 18
+    minimizeButton.Font = Enum.Font.GothamBold
+    minimizeButton.Parent = titleBar
+    
+    local minimizeCorner = Instance.new("UICorner")
+    minimizeCorner.CornerRadius = UDim.new(0, 8)
+    minimizeCorner.Parent = minimizeButton
+    
+    local isMinimized = false
+    minimizeButton.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        if isMinimized then
+            mainFrame:TweenSize(UDim2.new(0, 500, 0, 60), "Out", "Quad", 0.3)
+        else
+            mainFrame:TweenSize(UDim2.new(0, 500, 0, 700), "Out", "Quad", 0.3)
+        end
+    end)
+    
+    -- Container de abas
+    local tabContainer = Instance.new("Frame")
+    tabContainer.Name = "TabContainer"
+    tabContainer.Size = UDim2.new(1, 0, 0, 50)
+    tabContainer.Position = UDim2.new(0, 0, 0, 60)
+    tabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    tabContainer.BorderSizePixel = 0
+    tabContainer.Parent = mainFrame
+    
+    -- Container de conteúdo
+    local contentContainer = Instance.new("Frame")
+    contentContainer.Name = "ContentContainer"
+    contentContainer.Size = UDim2.new(1, 0, 1, -110)
+    contentContainer.Position = UDim2.new(0, 0, 0, 110)
+    contentContainer.BackgroundTransparency = 1
+    contentContainer.BorderSizePixel = 0
+    contentContainer.Parent = mainFrame
+    
+    -- Sistema de abas
+    local tabs = {
+        {name = "🎯 Farm", content = "FarmTab"},
+        {name = "🍍 Fruits", content = "FruitsTab"},
+        {name = "🧭 Teleport", content = "TeleportTab"},
+        {name = "⚔️ Combat", content = "CombatTab"},
+        {name = "👁️ ESP", content = "ESPTab"},
+        {name = "🏃‍♂️ Movement", content = "MovementTab"},
+        {name = "🛠️ Misc", content = "MiscTab"}
+    }
+    
+    local activeTab = 1
+    local tabButtons = {}
+    local tabFrames = {}
+    
+    -- Criar botões das abas
+    for i, tab in pairs(tabs) do
+        local tabButton = Instance.new("TextButton")
+        tabButton.Name = tab.name
+        tabButton.Size = UDim2.new(1 / #tabs, 0, 1, 0)
+        tabButton.Position = UDim2.new((i - 1) / #tabs, 0, 0, 0)
+        tabButton.BackgroundColor3 = i == 1 and Color3.fromRGB(138, 43, 226) or Color3.fromRGB(40, 40, 45)
+        tabButton.Text = tab.name
+        tabButton.TextColor3 = Color3.white
+        tabButton.TextSize = 12
+        tabButton.Font = Enum.Font.Gotham
+        tabButton.BorderSizePixel = 0
+        tabButton.Parent = tabContainer
+        
+        tabButtons[i] = tabButton
+        
+        tabButton.MouseButton1Click:Connect(function()
+            -- Atualiza aparência dos botões
+            for j, btn in pairs(tabButtons) do
+                btn.BackgroundColor3 = j == i and Color3.fromRGB(138, 43, 226) or Color3.fromRGB(40, 40, 45)
+            end
+            
+            -- Mostra/esconde frames
+            for j, frame in pairs(tabFrames) do
+                frame.Visible = j == i
+            end
+            
+            activeTab = i
+        end)
+    end
+    
+    -- Criar frames de conteúdo das abas
+    for i, tab in pairs(tabs) do
+        local tabFrame = Instance.new("ScrollingFrame")
+        tabFrame.Name = tab.content
+        tabFrame.Size = UDim2.new(1, 0, 1, 0)
+        tabFrame.Position = UDim2.new(0, 0, 0, 0)
+        tabFrame.BackgroundTransparency = 1
+        tabFrame.BorderSizePixel = 0
+        tabFrame.ScrollBarThickness = 4
+        tabFrame.ScrollBarImageColor3 = Color3.fromRGB(138, 43, 226)
+        tabFrame.CanvasSize = UDim2.new(0, 0, 0, 1000)
+        tabFrame.Visible = i == 1
+        tabFrame.Parent = contentContainer
+        
+        local layout = Instance.new("UIListLayout")
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Padding = UDim.new(0, 5)
+        layout.Parent = tabFrame
+        
+        local padding = Instance.new("UIPadding")
+        padding.PaddingLeft = UDim.new(0, 10)
+        padding.PaddingRight = UDim.new(0, 10)
+        padding.PaddingTop = UDim.new(0, 10)
+        padding.PaddingBottom = UDim.new(0, 10)
+        padding.Parent = tabFrame
+        
+        tabFrames[i] = tabFrame
+    end
+    
+    -- Função para criar botões toggle
+    function createToggleButton(parent, text, setting, callback)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, 0, 0, 35)
+        button.BackgroundColor3 = NeonHub.Settings[setting] and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(200, 50, 50)
+        button.Text = text
+        button.TextColor3 = Color3.white
+        button.TextSize = 14
+        button.Font = Enum.Font.Gotham
+        button.Parent = parent
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = button
+        
+        button.MouseButton1Click:Connect(function()
+            NeonHub.Settings[setting] = not NeonHub.Settings[setting]
+            button.BackgroundColor3 = NeonHub.Settings[setting] and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(200, 50, 50)
+            
+            if callback then
+                callback(NeonHub.Settings[setting])
+            end
+        end)
+        
+        return button
+    end
+    
+    -- Função para criar sliders
+    function createSlider(parent, text, setting, min, max, callback)
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 0, 60)
+        frame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+        frame.BorderSizePixel = 0
+        frame.Parent = parent
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = frame
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 0, 30)
+        label.Position = UDim2.new(0, 0, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text .. ": " .. NeonHub.Settings[setting]
+        label.TextColor3 = Color3.white
+        label.TextSize = 12
+        label.Font = Enum.Font.Gotham
+        label.Parent = frame
+        
+        local slider = Instance.new("Frame")
+        slider.Size = UDim2.new(1, -20, 0, 6)
+        slider.Position = UDim2.new(0, 10, 0, 35)
+        slider.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+        slider.BorderSizePixel = 0
+        slider.Parent = frame
+        
+        local sliderCorner = Instance.new("UICorner")
+        sliderCorner.CornerRadius = UDim.new(0, 3)
+        sliderCorner.Parent = slider
+        
+        local fill = Instance.new("Frame")
+        fill.Size = UDim2.new((NeonHub.Settings[setting] - min) / (max - min), 0, 1, 0)
+        fill.Position = UDim2.new(0, 0, 0, 0)
+        fill.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+        fill.BorderSizePixel = 0
+        fill.Parent = slider
+        
+        local fillCorner = Instance.new("UICorner")
+        fillCorner.CornerRadius = UDim.new(0, 3)
+        fillCorner.Parent = fill
+        
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, 0, 1, 0)
+        button.Position = UDim2.new(0, 0, 0, 0)
+        button.BackgroundTransparency = 1
+        button.Text = ""
+        button.Parent = slider
+        
+        local dragging = false
+        
+        button.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+            end
+        end)
+        
+        button.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local mouse = Players.LocalPlayer:GetMouse()
+                local relative = math.clamp((mouse.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+                local value = math.floor(min + (max - min) * relative)
+                
+                NeonHub.Settings[setting] = value
+                fill.Size = UDim2.new(relative, 0, 1, 0)
+                label.Text = text .. ": " .. value
+                
+                if callback then
+                    callback(value)
+                end
+            end
+        end)
+        
+        return frame
+    end
+    
+    -- CONTEÚDO DA ABA FARM
+    local farmTab = tabFrames[1]
+    
+    createToggleButton(farmTab, "🎯 Auto Farm Level", "AutoFarm")
+    createToggleButton(farmTab, "📋 Auto Quest", "AutoQuest")
+    createToggleButton(farmTab, "👑 Auto Boss Farm", "AutoBoss")
+    createToggleButton(farmTab, "⚡ Fast Attack", "FastAttack")
+    createToggleButton(farmTab, "🔥 Auto Mastery", "AutoMastery")
+    createToggleButton(farmTab, "🐉 Auto Sea Beast", "AutoSeaBeast")
+    createToggleButton(farmTab, "📦 Auto Material", "AutoMaterial")
+    createToggleButton(farmTab, "⚔️ Auto CDK", "AutoCDK")
+    createToggleButton(farmTab, "🗡️ Auto Yama", "AutoYama")
+    createToggleButton(farmTab, "🌸 Auto Tushita", "AutoTushita")
+    createToggleButton(farmTab, "🔪 Auto Saber", "AutoSaber")
+    createToggleButton(farmTab, "🏒 Auto Pole V2", "AutoPole")
+    createToggleButton(farmTab, "👥 Auto Buddy Sword", "AutoBuddy")
+    createToggleButton(farmTab, "📈 Auto Stats", "AutoStats")
+    
+    createSlider(farmTab, "Farm Distance", "FarmDistance", 10, 100, function(value)
+        NeonHub.Settings.FarmDistance = value
+    end)
+    
+    -- CONTEÚDO DA ABA FRUITS
+    local fruitsTab = tabFrames[2]
+    
+    createToggleButton(fruitsTab, "🛒 Auto Buy Fruit", "AutoBuyFruit")
+    createToggleButton(fruitsTab, "🍽️ Auto Eat Fruit", "AutoEatFruit")
+    createToggleButton(fruitsTab, "📦 Auto Store Fruit", "AutoStoreFruit")
+    createToggleButton(fruitsTab, "📤 Auto Drop Fruit", "AutoDropFruit")
+    createToggleButton(fruitsTab, "🔔 Fruit Notifications", "FruitNotify")
+    createToggleButton(fruitsTab, "🎯 Fruit Sniper", "FruitSniper")
+    
+    -- CONTEÚDO DA ABA TELEPORT
+    local teleportTab = tabFrames[3]
+    
+    createToggleButton(teleportTab, "🏝️ Safe Teleport", "SafeTP")
+    createToggleButton(teleportTab, "🆘 Emergency TP", "EmergencyTP")
+    
+    -- Botões de teleporte para ilhas
+    for island, _ in pairs(NeonHub.Islands) do
+        local tpButton = Instance.new("TextButton")
+        tpButton.Size = UDim2.new(1, 0, 0, 30)
+        tpButton.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+        tpButton.Text = "🏝️ " .. island
+        tpButton.TextColor3 = Color3.white
+        tpButton.TextSize = 12
+        tpButton.Font = Enum.Font.Gotham
+        tpButton.Parent = teleportTab
+        
+        local tpCorner = Instance.new("UICorner")
+        tpCorner.CornerRadius = UDim.new(0, 6)
+        tpCorner.Parent = tpButton
+        
+        tpButton.MouseButton1Click:Connect(function()
+            teleportToIsland(island)
+        end)
+    end
+    
+    -- CONTEÚDO DA ABA COMBAT
+    local combatTab = tabFrames[4]
+    
+    createToggleButton(combatTab, "🛡️ Auto Haki", "AutoHaki")
+    createToggleButton(combatTab, "👁️ Auto Aura (Ken)", "AutoAura")
+    createToggleButton(combatTab, "⚡ Auto Skills", "AutoSkills")
+    createToggleButton(combatTab, "🎯 Kill Aura", "KillAura")
+    createToggleButton(combatTab, "🔫 Aimbot", "Aimbot")
+    createToggleButton(combatTab, "🥊 PvP Combo", "PvPCombo")
+    
+    -- Toggles individuais para skills
+    createToggleButton(combatTab, "Z Skill", "SkillZ")
+    createToggleButton(combatTab, "X Skill", "SkillX")
+    createToggleButton(combatTab, "C Skill", "SkillC")
+    createToggleButton(combatTab, "V Skill", "SkillV")
+    createToggleButton(combatTab, "F Skill", "SkillF")
+    
+    createSlider(combatTab, "Kill Aura Range", "KillAuraRange", 10, 100, function(value)
+        NeonHub.Settings.KillAuraRange = value
+    end)
+    
+    createSlider(combatTab, "Aimbot FOV", "AimbotFOV", 50, 360, function(value)
+        NeonHub.Settings.AimbotFOV = value
+    end)
+    
+    -- CONTEÚDO DA ABA ESP
+    local espTab = tabFrames[5]
+    
+    createToggleButton(espTab, "👥 ESP Players", "ESPPlayer", function(enabled)
+        if not enabled then
+            for _, espObj in pairs(NeonHub.ESPObjects) do
+                if espObj then espObj:Destroy() end
+            end
+            NeonHub.ESPObjects = {}
+        end
+    end)
+    
+    createToggleButton(espTab, "👹 ESP Enemies", "ESPEnemy", function(enabled)
+        if not enabled then
+            for _, espObj in pairs(NeonHub.ESPObjects) do
+                if espObj then espObj:Destroy() end
+            end
+            NeonHub.ESPObjects = {}
+        end
+    end)
+    
+    createToggleButton(espTab, "🍍 ESP Fruits", "ESPFruit")
+    createToggleButton(espTab, "📦 ESP Chests", "ESPChest")
+    createToggleButton(espTab, "🐉 ESP Sea Beasts", "ESPSeaBeast")
+    createToggleButton(espTab, "🏝️ ESP Islands", "ESPIsland")
+    
+    -- CONTEÚDO DA ABA MOVEMENT
+    local movementTab = tabFrames[6]
+    
+    createToggleButton(movementTab, "✈️ Fly", "Fly", function(enabled)
+        if enabled then
+            startFly()
+        else
+            stopFly()
+        end
+    end)
+    
+    createToggleButton(movementTab, "👻 NoClip", "NoClip", function(enabled)
+        toggleNoClip()
+    end)
+    
+    createToggleButton(movementTab, "💨 Speed Hack", "SpeedHack", function(enabled)
+        if enabled then
+            setWalkSpeed(NeonHub.Settings.WalkSpeed)
+        else
+            setWalkSpeed(16)
+        end
+    end)
+    
+    createToggleButton(movementTab, "🦘 Jump Hack", "JumpHack", function(enabled)
+        if enabled then
+            setJumpPower(NeonHub.Settings.JumpPower)
+        else
+            setJumpPower(50)
+        end
+    end)
+    
+    createToggleButton(movementTab, "⚡ Infinite Energy", "InfiniteEnergy")
+    createToggleButton(movementTab, "🛡️ Anti Fall Damage", "Antifall")
+    
+    createSlider(movementTab, "Fly Speed", "FlySpeed", 10, 100, function(value)
+        NeonHub.Settings.FlySpeed = value
+    end)
+    
+    createSlider(movementTab, "Walk Speed", "WalkSpeed", 16, 100, function(value)
+        NeonHub.Settings.WalkSpeed = value
+        if NeonHub.Settings.SpeedHack then
+            setWalkSpeed(value)
+        end
+    end)
+    
+    createSlider(movementTab, "Jump Power", "JumpPower", 50, 200, function(value)
+        NeonHub.Settings.JumpPower = value
+        if NeonHub.Settings.JumpHack then
+            setJumpPower(value)
+        end
+    end)
+    
+    -- CONTEÚDO DA ABA MISC
+    local miscTab = tabFrames[7]
+    
+    createToggleButton(miscTab, "😴 Anti-AFK", "AntiAFK")
+    createToggleButton(miscTab, "⚡ FPS Booster", "FPSBoost", function(enabled)
+        if enabled then boostFPS() end
+    end)
+    createToggleButton(miscTab, "🔄 Auto Server Hop", "ServerHop")
+    createToggleButton(miscTab, "🔄 Auto Rejoin", "AutoRejoin")
+    createToggleButton(miscTab, "💾 Save Config", "SaveConfig")
+    
+    -- Status display
+    local statusFrame = Instance.new("Frame")
+    statusFrame.Size = UDim2.new(1, 0, 0, 80)
+    statusFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    statusFrame.BorderSizePixel = 0
+    statusFrame.Parent = miscTab
+    
+    local statusCorner = Instance.new("UICorner")
+    statusCorner.CornerRadius = UDim.new(0, 6)
+    statusCorner.Parent = statusFrame
+    
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(1, -20, 1, -20)
+    statusLabel.Position = UDim2.new(0, 10, 0, 10)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "📊 Status: Iniciando..."
+    statusLabel.TextColor3 = Color3.white
+    statusLabel.TextSize = 12
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextWrapped = true
+    statusLabel.TextYAlignment = Enum.TextYAlignment.Top
+    statusLabel.Parent = statusFrame
+    
+    -- Update status loop
+    spawn(function()
+        while statusLabel and statusLabel.Parent do
+            wait(1)
+            local level = getLevel()
+            local island = getCurrentIsland()
+            local sea = getPlayerSea()
+            local beli = getBeli()
+            local fragments = getFragments()
+            
+            statusLabel.Text = string.format(
+                "📊 Level: %d | 🌊 Sea: %d\n🏝️ Ilha: %s\n💰 Beli: %s\n🔹 Fragments: %s\n🎯 Target: %s",
+                level, sea, island, 
+                tostring(beli):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""),
+                tostring(fragments):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""),
+                NeonHub.CurrentTarget or "Nenhum"
+            )
+        end
+    end)
+    
+    NeonHub.GUI = screenGui
+    print("🎨 Interface criada com sucesso!")
+end
+
+-- ===== LOOP PRINCIPAL OTIMIZADO =====
+function mainLoop()
+    while true do
+        wait(0.5) -- Reduzido para melhor responsividade
+        
+        pcall(function()
+            -- Verifica se o personagem existe
+            if not character or not character.Parent then
+                character = player.Character or player.CharacterAdded:Wait()
+                humanoid = character:WaitForChild("Humanoid")
+                rootPart = character:WaitForChild("HumanoidRootPart")
+            end
+            
+            -- Anti-AFK
+            if NeonHub.Settings.AntiAFK then
+                antiAFK()
+            end
+            
+            -- Auto Stats
+            if NeonHub.Settings.AutoStats then
+                autoStats()
+            end
+            
+            -- Sistema de farm principal
+            if NeonHub.Settings.AutoFarm then
+                local enemy = nil
+                
+                -- Prioridade: Boss > Inimigo normal
+                if NeonHub.Settings.AutoBoss then
+                    enemy = getNearestBoss()
+                else
+                    enemy = getNearestEnemy()
+                end
+                
+                if enemy then
+                    NeonHub.CurrentTarget = enemy.Name
+                    attackEnemy(enemy)
+                else
+                    NeonHub.CurrentTarget = nil
+                    -- Se não há inimigos, aceita uma nova quest
+                    if NeonHub.Settings.AutoQuest then
+                        acceptQuest()
+                    end
+                end
+            end
+            
+            -- Sistema ESP
+            if NeonHub.Settings.ESPPlayer then
+                updatePlayerESP()
+            end
+            
+            if NeonHub.Settings.ESPEnemy then
+                updateEnemyESP()
+            end
+            
+            if NeonHub.Settings.ESPFruit then
+                updateFruitESP()
+            end
+            
+            -- Sistema de frutas
+            if NeonHub.Settings.AutoStoreFruit then
+                storeFruit()
+            end
+            
+            if NeonHub.Settings.AutoDropFruit then
+                dropFruit()
+            end
+            
+            -- Infinite Energy
+            if NeonHub.Settings.InfiniteEnergy and humanoid then
+                for _, energy in pairs({"Energy", "Stamina"}) do
+                    if player.Character:FindFirstChild(energy) then
+                        player.Character[energy].Value = player.Character[energy].MaxValue
+                    end
+                end
+            end
+            
+            -- Anti Fall Damage
+            if NeonHub.Settings.AntiAFL then
+                if humanoid then
+                    humanoid.FreeFalling:Connect(function()
+                        humanoid.FreeFalling = false
+                    end)
+                end
+            end
+        end)
+    end
+end
+
+-- ===== INICIALIZAÇÃO COMPLETA =====
+print("🚀 Neon Hub v2 - Criado por XzgyX")
+print("📋 Funcionalidades Premium:")
+print("✅ Auto Farm Level com Fast Attack")
+print("✅ Auto Farm Bosses de todos os Seas")
+print("✅ Sistema de navegação inteligente")
+print("✅ Auto Quest com seleção automática")
+print("✅ Sistema de combate avançado")
+print("✅ Auto Skills (Z, X, C, V, F)")
+print("✅ Auto Stats com prioridades customizáveis")
+print("✅ Sistema ESP completo")
+print("✅ Fly, NoClip, Speed Hack")
+print("✅ Sistema de frutas automático")
+print("✅ Anti-AFK e FPS Booster")
+print("✅ Interface moderna e responsiva")
+print("✅ Compatível com Delta, Fluxus, Hydrogen")
+
+-- Cria a interface
+createGUI()
+
+-- Inicia o loop principal
+spawn(mainLoop)
+
+-- Configurações iniciais
+if NeonHub.Settings.FPSBoost then
+    boostFPS()
+end
+
+-- Mensagem de sucesso
+notify("Neon Hub v2", "Script carregado com sucesso!\nCriado por: XzgyX", 10)
+sendWebhook("🚀 Neon Hub v2 iniciado por " .. player.Name .. " (Level: " .. getLevel() .. ")")
+
+print("💎 Neon Hub v2 iniciado com sucesso!")
+print("🎮 Use a interface para configurar as opções")
+print("👨‍💻 Criado por: XzgyX")
+
+-- Proteção contra erros
+game.Players.PlayerRemoving:Connect(function(leavingPlayer)
+    if leavingPlayer == player then
+        sendWebhook("👋 " .. player.Name .. " desconectou (Level: " .. getLevel() .. ")")
+    end
+end)
+
+-- Auto rejoin em caso de kick
+if NeonHub.Settings.AutoRejoin then
+    game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+        if child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild('ErrorFrame') then
+            game:GetService("TeleportService"):Teleport(game.PlaceId)
+        end
+    end)
+end
