@@ -1,521 +1,552 @@
 
---[[
-    Neon Hub - Blox Fruits Auto Farm Script Advanced
-    Created By: XzgyX
-    Features: Auto Farm, Auto Quest, Auto Chest, Auto Saber, Sea Progression, Enemy Detection
-    Max Level: 2600
-    Version: 3.0 Advanced
-]]
+-- Neon Hub v2 - Blox Fruits Script
+-- Sistema completo de auto farm, boss farm, mastery, e muito mais
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local Workspace = game:GetService("Workspace")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local HttpService = game:GetService("HttpService")
 
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
 
--- Neon Hub Advanced Configuration
+-- ===== CONFIGURAÇÕES GLOBAIS =====
 local NeonHub = {
-    Version = "3.0 Advanced",
-    Creator = "XzgyX",
-    AutoFarm = true,
-    AutoQuest = true,
-    AutoChest = true,
-    AutoSaber = true,
-    AutoBoss = true,
-    FastAttack = true,
-    SafeMode = true,
-    TeleportSpeed = 350,
-    AttackDistance = 15,
-    QuestDistance = 10,
-    FarmDistance = 20
+    Settings = {
+        AutoFarm = true,
+        AutoQuest = true,
+        AutoBoss = false,
+        AutoMastery = false,
+        AutoStats = true,
+        AutoHaki = true,
+        AutoSkills = true,
+        FastAttack = true,
+        AntiAFK = true,
+        AutoChest = false,
+        SelectedWeapon = "Melee",
+        SafeMode = true,
+        DiscordWebhook = "",
+        FarmMode = "Level", -- "Level", "Boss", "Mastery", "Fruit"
+    },
+    Stats = {
+        Melee = 70,
+        Defense = 20,
+        Sword = 5,
+        Gun = 0,
+        Fruit = 5
+    },
+    Islands = {
+        ["Jungle"] = CFrame.new(-60.0844383, 73.0055847, 1550.4962),
+        ["Pirate Village"] = CFrame.new(-1181.3093, 4.78708, 3803.5437),
+        ["Marine Base"] = CFrame.new(-2573.3374, 6.88881016, 2046.99817),
+        ["Middle Town"] = CFrame.new(-4541.61035, 844.708801, 3741.31641),
+        ["Frozen Village"] = CFrame.new(1395.2832, 87.272789, -1482.7738),
+        ["Marine Fortress"] = CFrame.new(-2994.61084, 12.9365015, -2990.39111),
+        ["Skypiea"] = CFrame.new(-4607.82275, 872.54248, -1667.55688),
+        ["Prison"] = CFrame.new(4875.330078125, 5.6519818305969, 734.85021972656)
+    },
+    Enemies = {},
+    Bosses = {},
+    Quests = {},
+    CurrentTarget = nil,
+    LastAttack = 0,
+    GUI = nil
 }
 
--- Advanced Sea Progression Data
-local SeaData = {
-    [1] = {
-        Name = "First Sea",
-        MaxLevel = 700,
-        PlaceId = 2753915549,
-        Islands = {
-            "Jungle", "Pirate Village", "Desert", "Frozen Village", 
-            "Marine Base", "Sky Island", "Prison", "Magma Village",
-            "Underwater City", "Upper Skylands", "Fountain City"
-        },
-        Quests = {
-            [1] = {Name = "Bandit", Level = 1, Island = "Jungle", Enemy = "Bandit"},
-            [10] = {Name = "Monkey", Level = 10, Island = "Jungle", Enemy = "Monkey"},
-            [15] = {Name = "Gorilla", Level = 15, Island = "Jungle", Enemy = "Gorilla"},
-            [20] = {Name = "Pirate", Level = 20, Island = "Pirate Village", Enemy = "Pirate"},
-            [30] = {Name = "Brute", Level = 30, Island = "Pirate Village", Enemy = "Brute"},
-            [40] = {Name = "Desert Bandit", Level = 40, Island = "Desert", Enemy = "Desert Bandit"},
-            [60] = {Name = "Desert Officer", Level = 60, Island = "Desert", Enemy = "Desert Officer"},
-            [75] = {Name = "Snow Bandit", Level = 75, Island = "Frozen Village", Enemy = "Snow Bandit"},
-            [90] = {Name = "Snowman", Level = 90, Island = "Frozen Village", Enemy = "Snowman"},
-            [100] = {Name = "Chief Petty Officer", Level = 100, Island = "Marine Base", Enemy = "Chief Petty Officer"},
-            [120] = {Name = "Sky Bandit", Level = 120, Island = "Sky Island", Enemy = "Sky Bandit"},
-            [150] = {Name = "Dark Master", Level = 150, Island = "Sky Island", Enemy = "Dark Master"},
-            [175] = {Name = "Prisoner", Level = 175, Island = "Prison", Enemy = "Prisoner"},
-            [190] = {Name = "Dangerous Prisoner", Level = 190, Island = "Prison", Enemy = "Dangerous Prisoner"},
-            [210] = {Name = "Toga Warrior", Level = 210, Island = "Colosseum", Enemy = "Toga Warrior"},
-            [250] = {Name = "Gladiator", Level = 250, Island = "Colosseum", Enemy = "Gladiator"},
-            [300] = {Name = "Military Soldier", Level = 300, Island = "Magma Village", Enemy = "Military Soldier"},
-            [330] = {Name = "Military Spy", Level = 330, Island = "Magma Village", Enemy = "Military Spy"},
-            [375] = {Name = "Fishman Warrior", Level = 375, Island = "Underwater City", Enemy = "Fishman Warrior"},
-            [400] = {Name = "Fishman Commando", Level = 400, Island = "Underwater City", Enemy = "Fishman Commando"},
-            [450] = {Name = "God's Guard", Level = 450, Island = "Sky Island", Enemy = "God's Guard"},
-            [500] = {Name = "Shanda", Level = 500, Island = "Sky Island", Enemy = "Shanda"},
-            [575] = {Name = "Royal Squad", Level = 575, Island = "Sky Island", Enemy = "Royal Squad"},
-            [625] = {Name = "Royal Soldier", Level = 625, Island = "Sky Island", Enemy = "Royal Soldier"},
-            [700] = {Name = "Galley Pirate", Level = 700, Island = "Fountain City", Enemy = "Galley Pirate"}
-        }
-    },
-    [2] = {
-        Name = "Second Sea",
-        MaxLevel = 1500,
-        PlaceId = 4442272183,
-        Islands = {
-            "Kingdom of Rose", "Green Zone", "Graveyard", "Snow Mountain",
-            "Hot and Cold", "Cursed Ship", "Ice Castle", "Forgotten Island"
-        },
-        Quests = {
-            [700] = {Name = "Raider", Level = 700, Island = "Kingdom of Rose", Enemy = "Raider"},
-            [725] = {Name = "Mercenary", Level = 725, Island = "Kingdom of Rose", Enemy = "Mercenary"},
-            [775] = {Name = "Swan Pirate", Level = 775, Island = "Kingdom of Rose", Enemy = "Swan Pirate"},
-            [800] = {Name = "Factory Staff", Level = 800, Island = "Kingdom of Rose", Enemy = "Factory Staff"},
-            [825] = {Name = "Marine Lieutenant", Level = 825, Island = "Kingdom of Rose", Enemy = "Marine Lieutenant"},
-            [850] = {Name = "Marine Captain", Level = 850, Island = "Kingdom of Rose", Enemy = "Marine Captain"},
-            [900] = {Name = "Zombie", Level = 900, Island = "Graveyard", Enemy = "Zombie"},
-            [950] = {Name = "Vampire", Level = 950, Island = "Graveyard", Enemy = "Vampire"},
-            [1000] = {Name = "Snow Trooper", Level = 1000, Island = "Snow Mountain", Enemy = "Snow Trooper"},
-            [1050] = {Name = "Winter Warrior", Level = 1050, Island = "Snow Mountain", Enemy = "Winter Warrior"},
-            [1100] = {Name = "Lab Subordinate", Level = 1100, Island = "Hot and Cold", Enemy = "Lab Subordinate"},
-            [1150] = {Name = "Horned Warrior", Level = 1150, Island = "Hot and Cold", Enemy = "Horned Warrior"},
-            [1200] = {Name = "Magma Ninja", Level = 1200, Island = "Hot and Cold", Enemy = "Magma Ninja"},
-            [1250] = {Name = "Lava Pirate", Level = 1250, Island = "Hot and Cold", Enemy = "Lava Pirate"},
-            [1300] = {Name = "Ship Deckhand", Level = 1300, Island = "Cursed Ship", Enemy = "Ship Deckhand"},
-            [1325] = {Name = "Ship Engineer", Level = 1325, Island = "Cursed Ship", Enemy = "Ship Engineer"},
-            [1350] = {Name = "Ship Steward", Level = 1350, Island = "Cursed Ship", Enemy = "Ship Steward"},
-            [1375] = {Name = "Ship Officer", Level = 1375, Island = "Cursed Ship", Enemy = "Ship Officer"},
-            [1400] = {Name = "Arctic Warrior", Level = 1400, Island = "Ice Castle", Enemy = "Arctic Warrior"},
-            [1425] = {Name = "Snow Lurker", Level = 1425, Island = "Ice Castle", Enemy = "Snow Lurker"},
-            [1450] = {Name = "Sea Soldier", Level = 1450, Island = "Forgotten Island", Enemy = "Sea Soldier"},
-            [1500] = {Name = "Water Fighter", Level = 1500, Island = "Forgotten Island", Enemy = "Water Fighter"}
-        }
-    },
-    [3] = {
-        Name = "Third Sea",
-        MaxLevel = 2600,
-        PlaceId = 7449423635,
-        Islands = {
-            "Port Town", "Hydra Island", "Great Tree", "Castle on the Sea",
-            "Haunted Castle", "Peanut Island", "Ice Cream Island", "Cake Island",
-            "Chocolate Land", "Candy Land", "Tiki Outpost"
-        },
-        Quests = {
-            [1500] = {Name = "Pirate Millionaire", Level = 1500, Island = "Port Town", Enemy = "Pirate Millionaire"},
-            [1525] = {Name = "Dragon Crew Warrior", Level = 1525, Island = "Port Town", Enemy = "Dragon Crew Warrior"},
-            [1575] = {Name = "Dragon Crew Archer", Level = 1575, Island = "Hydra Island", Enemy = "Dragon Crew Archer"},
-            [1600] = {Name = "Female Islander", Level = 1600, Island = "Hydra Island", Enemy = "Female Islander"},
-            [1625] = {Name = "Giant Islander", Level = 1625, Island = "Great Tree", Enemy = "Giant Islander"},
-            [1650] = {Name = "Marine Commodore", Level = 1650, Island = "Great Tree", Enemy = "Marine Commodore"},
-            [1675] = {Name = "Marine Rear Admiral", Level = 1675, Island = "Great Tree", Enemy = "Marine Rear Admiral"},
-            [1700] = {Name = "Fishman Raider", Level = 1700, Island = "Deep Forest", Enemy = "Fishman Raider"},
-            [1725] = {Name = "Fishman Captain", Level = 1725, Island = "Deep Forest", Enemy = "Fishman Captain"},
-            [1775] = {Name = "Forest Pirate", Level = 1775, Island = "Deep Forest", Enemy = "Forest Pirate"},
-            [1800] = {Name = "Mythological Pirate", Level = 1800, Island = "Castle on the Sea", Enemy = "Mythological Pirate"},
-            [1850] = {Name = "Jungle Pirate", Level = 1850, Island = "Castle on the Sea", Enemy = "Jungle Pirate"},
-            [1900] = {Name = "Musketeer Pirate", Level = 1900, Island = "Castle on the Sea", Enemy = "Musketeer Pirate"},
-            [1950] = {Name = "Reborn Skeleton", Level = 1950, Island = "Haunted Castle", Enemy = "Reborn Skeleton"},
-            [2000] = {Name = "Living Zombie", Level = 2000, Island = "Haunted Castle", Enemy = "Living Zombie"},
-            [2050] = {Name = "Demonic Soul", Level = 2050, Island = "Haunted Castle", Enemy = "Demonic Soul"},
-            [2100] = {Name = "Posessed Mummy", Level = 2100, Island = "Haunted Castle", Enemy = "Posessed Mummy"},
-            [2175] = {Name = "Peanut Scout", Level = 2175, Island = "Peanut Island", Enemy = "Peanut Scout"},
-            [2200] = {Name = "Peanut President", Level = 2200, Island = "Peanut Island", Enemy = "Peanut President"},
-            [2250] = {Name = "Ice Cream Chef", Level = 2250, Island = "Ice Cream Island", Enemy = "Ice Cream Chef"},
-            [2300] = {Name = "Ice Cream Commander", Level = 2300, Island = "Ice Cream Island", Enemy = "Ice Cream Commander"},
-            [2325] = {Name = "Cookie Crafter", Level = 2325, Island = "Cake Island", Enemy = "Cookie Crafter"},
-            [2350] = {Name = "Cake Guard", Level = 2350, Island = "Cake Island", Enemy = "Cake Guard"},
-            [2375] = {Name = "Baking Staff", Level = 2375, Island = "Cake Island", Enemy = "Baking Staff"},
-            [2400] = {Name = "Head Baker", Level = 2400, Island = "Cake Island", Enemy = "Head Baker"},
-            [2425] = {Name = "Cocoa Warrior", Level = 2425, Island = "Chocolate Land", Enemy = "Cocoa Warrior"},
-            [2450] = {Name = "Chocolate Bar Battler", Level = 2450, Island = "Chocolate Land", Enemy = "Chocolate Bar Battler"},
-            [2475] = {Name = "Sweet Thief", Level = 2475, Island = "Chocolate Land", Enemy = "Sweet Thief"},
-            [2500] = {Name = "Candy Rebel", Level = 2500, Island = "Chocolate Land", Enemy = "Candy Rebel"},
-            [2525] = {Name = "Candy Pirate", Level = 2525, Island = "Candy Land", Enemy = "Candy Pirate"},
-            [2550] = {Name = "Snow Demon", Level = 2550, Island = "Candy Land", Enemy = "Snow Demon"},
-            [2575] = {Name = "Isle Outlaw", Level = 2575, Island = "Tiki Outpost", Enemy = "Isle Outlaw"},
-            [2600] = {Name = "Island Boy", Level = 2600, Island = "Tiki Outpost", Enemy = "Island Boy"}
-        }
-    }
-}
-
--- Utility Functions
-local function GetPlayerLevel()
-    if Player.Data and Player.Data.Level then
-        return Player.Data.Level.Value
-    end
-    return 1
+-- ===== SISTEMA DE DETECÇÃO =====
+function getLevel()
+    return player.Data.Level.Value or 1
 end
 
-local function GetCurrentSea()
-    local placeId = game.PlaceId
-    for sea, data in pairs(SeaData) do
-        if data.PlaceId == placeId then
-            return sea
+function getPlayerSea()
+    local level = getLevel()
+    if level < 700 then return 1
+    elseif level < 1500 then return 2
+    else return 3 end
+end
+
+function getCurrentIsland()
+    local islands = {
+        ["Jungle"] = Vector3.new(-60, 73, 1550),
+        ["Pirate Village"] = Vector3.new(-1181, 4, 3803),
+        ["Marine Base"] = Vector3.new(-2573, 6, 2046),
+        ["Middle Town"] = Vector3.new(-4541, 844, 3741),
+        ["Frozen Village"] = Vector3.new(1395, 87, -1482),
+        ["Marine Fortress"] = Vector3.new(-2994, 12, -2990),
+        ["Skypiea"] = Vector3.new(-4607, 872, -1667),
+        ["Prison"] = Vector3.new(4875, 5, 734)
+    }
+    
+    local playerPos = rootPart.Position
+    local closestIsland = "Unknown"
+    local closestDistance = math.huge
+    
+    for island, pos in pairs(islands) do
+        local distance = (playerPos - pos).Magnitude
+        if distance < closestDistance then
+            closestDistance = distance
+            closestIsland = island
         end
     end
-    return 1
+    
+    return closestIsland
 end
 
-local function GetCurrentQuest()
-    local level = GetPlayerLevel()
-    local currentSea = GetCurrentSea()
-    local quests = SeaData[currentSea].Quests
+-- ===== SISTEMA DE TELEPORTE INTELIGENTE =====
+function teleportTo(cframe)
+    if not cframe then return false end
     
-    local bestQuest = nil
-    for questLevel, questData in pairs(quests) do
-        if level >= questLevel then
-            if not bestQuest or questLevel > bestQuest.Level then
-                bestQuest = questData
-                bestQuest.Level = questLevel
-            end
+    local tween = TweenService:Create(
+        rootPart,
+        TweenInfo.new(2, Enum.EasingStyle.Linear),
+        {CFrame = cframe}
+    )
+    
+    tween:Play()
+    tween.Completed:Wait()
+    return true
+end
+
+function goToIsland(islandName)
+    local cframe = NeonHub.Islands[islandName]
+    if cframe then
+        print("🧭 Navegando para " .. islandName)
+        return teleportTo(cframe)
+    end
+    return false
+end
+
+-- ===== SISTEMA DE QUESTS =====
+function getQuestForLevel(level)
+    local quests = {
+        {level = 1, npc = "Bandit", enemy = "Bandit", island = "Jungle"},
+        {level = 15, npc = "Monkey", enemy = "Monkey", island = "Jungle"},
+        {level = 30, npc = "Gorilla", enemy = "Gorilla", island = "Jungle"},
+        {level = 60, npc = "Pirate", enemy = "Pirate", island = "Pirate Village"},
+        {level = 90, npc = "Brute", enemy = "Brute", island = "Pirate Village"},
+        {level = 120, npc = "Desert Bandit", enemy = "Desert Bandit", island = "Desert"},
+        {level = 150, npc = "Desert Officer", enemy = "Desert Officer", island = "Desert"},
+        {level = 175, npc = "Snow Bandit", enemy = "Snow Bandit", island = "Frozen Village"},
+        {level = 200, npc = "Snowman", enemy = "Snowman", island = "Frozen Village"},
+        {level = 225, npc = "Chief Petty Officer", enemy = "Chief Petty Officer", island = "Marine Base"},
+        {level = 250, npc = "Sky Bandit", enemy = "Sky Bandit", island = "Skypiea"},
+        {level = 275, npc = "Dark Master", enemy = "Dark Master", island = "Skypiea"},
+        {level = 300, npc = "Prisoner", enemy = "Prisoner", island = "Prison"},
+        {level = 330, npc = "Dangerous Prisoner", enemy = "Dangerous Prisoner", island = "Prison"},
+        {level = 375, npc = "Toga Warrior", enemy = "Toga Warrior", island = "Colosseum"},
+        {level = 400, npc = "Gladiator", enemy = "Gladiator", island = "Colosseum"},
+        {level = 450, npc = "Military Soldier", enemy = "Military Soldier", island = "Magma Village"},
+        {level = 475, npc = "Military Spy", enemy = "Military Spy", island = "Magma Village"},
+        {level = 525, npc = "Fishman Warrior", enemy = "Fishman Warrior", island = "Underwater City"},
+        {level = 575, npc = "Fishman Commando", enemy = "Fishman Commando", island = "Underwater City"},
+        {level = 625, npc = "God's Guard", enemy = "God's Guard", island = "Upper Skypiea"},
+        {level = 675, npc = "Shanda", enemy = "Shanda", island = "Upper Skypiea"}
+    }
+    
+    local bestQuest = quests[1]
+    for _, quest in pairs(quests) do
+        if level >= quest.level then
+            bestQuest = quest
         end
     end
     
     return bestQuest
 end
 
-local function TeleportTo(targetCFrame)
-    if not HumanoidRootPart or not targetCFrame then return end
+function acceptQuest()
+    local level = getLevel()
+    local quest = getQuestForLevel(level)
     
-    local distance = (HumanoidRootPart.Position - targetCFrame.Position).Magnitude
-    local speed = math.max(distance / NeonHub.TeleportSpeed, 0.1)
+    if not quest then return false end
     
-    local tweenInfo = TweenInfo.new(
-        speed,
-        Enum.EasingStyle.Linear,
-        Enum.EasingDirection.InOut,
-        0,
-        false,
-        0
-    )
+    -- Vai para a ilha da quest
+    if getCurrentIsland() ~= quest.island then
+        goToIsland(quest.island)
+        wait(3)
+    end
     
-    local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = targetCFrame})
-    tween:Play()
+    -- Procura o NPC da quest
+    local questNPC = nil
+    for _, npc in pairs(Workspace.NPCs:GetChildren()) do
+        if npc.Name:find(quest.npc) then
+            questNPC = npc
+            break
+        end
+    end
     
-    return tween
+    if questNPC then
+        teleportTo(questNPC.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3))
+        wait(1)
+        
+        -- Aceita a quest
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", quest.npc, 1)
+        print("✅ Quest aceita: " .. quest.enemy)
+        return true
+    end
+    
+    return false
 end
 
-local function GetNearestEnemy(enemyName)
+-- ===== SISTEMA DE COMBATE AVANÇADO =====
+function getNearestEnemy()
+    local level = getLevel()
+    local quest = getQuestForLevel(level)
+    local targetName = quest.enemy
+    
     local nearestEnemy = nil
     local nearestDistance = math.huge
     
-    if Workspace:FindFirstChild("Enemies") then
-        for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
-            if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") then
-                if enemy.Humanoid.Health > 0 then
-                    local distance = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
-                    if distance < nearestDistance then
-                        if not enemyName or enemy.Name == enemyName then
-                            nearestDistance = distance
-                            nearestEnemy = enemy
-                        end
+    for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+        if enemy.Name == targetName and enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") then
+            if enemy.Humanoid.Health > 0 then
+                local distance = (rootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+                if distance < nearestDistance then
+                    nearestDistance = distance
+                    nearestEnemy = enemy
+                end
+            end
+        end
+    end
+    
+    return nearestEnemy
+end
+
+function useSkill(key)
+    if not NeonHub.Settings.AutoSkills then return end
+    
+    VirtualInputManager:SendKeyEvent(true, key, false, game)
+    wait(0.1)
+    VirtualInputManager:SendKeyEvent(false, key, false, game)
+end
+
+function fastAttack()
+    if not NeonHub.Settings.FastAttack then return end
+    
+    local currentTime = tick()
+    if currentTime - NeonHub.LastAttack < 0.15 then return end
+    
+    NeonHub.LastAttack = currentTime
+    
+    -- Clique para atacar
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+    wait(0.05)
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+end
+
+function attackEnemy(enemy)
+    if not enemy or not enemy:FindFirstChild("HumanoidRootPart") then return end
+    
+    local enemyPos = enemy.HumanoidRootPart.Position
+    local distance = (rootPart.Position - enemyPos).Magnitude
+    
+    -- Teleporta para perto do inimigo
+    if distance > 15 then
+        teleportTo(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, -10))
+    end
+    
+    -- Ativa Haki
+    if NeonHub.Settings.AutoHaki then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+    end
+    
+    -- Usa skills em sequência
+    useSkill("Z")
+    wait(0.2)
+    useSkill("X")
+    wait(0.2)
+    useSkill("C")
+    wait(0.2)
+    useSkill("V")
+    wait(0.2)
+    useSkill("F")
+    
+    -- Ataque rápido
+    for i = 1, 5 do
+        fastAttack()
+        wait(0.1)
+    end
+end
+
+-- ===== SISTEMA DE FARM DE BOSSES =====
+function getBossForLevel(level)
+    local bosses = {
+        {name = "The Gorilla King", level = 25, island = "Jungle"},
+        {name = "Bobby", level = 55, island = "Pirate Village"},
+        {name = "Yeti", level = 110, island = "Frozen Village"},
+        {name = "Mob Leader", level = 120, island = "Desert"},
+        {name = "Vice Admiral", level = 130, island = "Marine Fortress"},
+        {name = "Warden", level = 220, island = "Prison"},
+        {name = "Chief Warden", level = 230, island = "Prison"},
+        {name = "Swan", level = 240, island = "Prison"},
+        {name = "Magma Admiral", level = 350, island = "Magma Village"},
+        {name = "Fishman Lord", level = 425, island = "Underwater City"},
+        {name = "Wysper", level = 500, island = "Upper Skypiea"},
+        {name = "Thunder God", level = 575, island = "Upper Skypiea"}
+    }
+    
+    for _, boss in pairs(bosses) do
+        if level >= boss.level then
+            return boss
+        end
+    end
+    
+    return nil
+end
+
+function farmBoss()
+    local level = getLevel()
+    local boss = getBossForLevel(level)
+    
+    if not boss then return false end
+    
+    -- Procura o boss
+    local bossEnemy = Workspace.Enemies:FindFirstChild(boss.name)
+    
+    if bossEnemy and bossEnemy:FindFirstChild("Humanoid") and bossEnemy.Humanoid.Health > 0 then
+        print("🔥 Atacando boss: " .. boss.name)
+        attackEnemy(bossEnemy)
+        return true
+    else
+        print("⏳ Aguardando respawn do boss: " .. boss.name)
+        return false
+    end
+end
+
+-- ===== SISTEMA DE AUTO STATS =====
+function autoStats()
+    if not NeonHub.Settings.AutoStats then return end
+    
+    local statsPoints = player.Data.Points.Value
+    if statsPoints <= 0 then return end
+    
+    local currentStats = {
+        Melee = player.Data.Stats.Melee.Level.Value,
+        Defense = player.Data.Stats.Defense.Level.Value,
+        Sword = player.Data.Stats.Sword.Level.Value,
+        Gun = player.Data.Stats.Gun.Level.Value,
+        Fruit = player.Data.Stats["Demon Fruit"].Level.Value
+    }
+    
+    -- Prioridade: Melee > Defense > Sword > Fruit > Gun
+    if currentStats.Melee < (getLevel() * 0.7) then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", 1)
+    elseif currentStats.Defense < (getLevel() * 0.2) then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Defense", 1)
+    elseif currentStats.Sword < (getLevel() * 0.05) then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Sword", 1)
+    elseif currentStats.Fruit < (getLevel() * 0.05) then
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", 1)
+    end
+end
+
+-- ===== SISTEMA DE AUTO CHEST =====
+function farmChests()
+    if not NeonHub.Settings.AutoChest then return end
+    
+    for _, chest in pairs(Workspace:GetChildren()) do
+        if chest.Name == "Chest1" or chest.Name == "Chest2" or chest.Name == "Chest3" then
+            if chest:FindFirstChild("Part") then
+                teleportTo(chest.Part.CFrame)
+                wait(1)
+                
+                -- Tenta abrir o baú
+                fireclickdetector(chest.ClickDetector)
+                wait(2)
+            end
+        end
+    end
+end
+
+-- ===== SISTEMA ANTI-AFK =====
+function antiAFK()
+    if not NeonHub.Settings.AntiAFK then return end
+    
+    -- Move o personagem ligeiramente
+    VirtualInputManager:SendKeyEvent(true, "W", false, game)
+    wait(0.1)
+    VirtualInputManager:SendKeyEvent(false, "W", false, game)
+    wait(0.1)
+    VirtualInputManager:SendKeyEvent(true, "S", false, game)
+    wait(0.1)
+    VirtualInputManager:SendKeyEvent(false, "S", false, game)
+end
+
+-- ===== GUI PRINCIPAL =====
+function createGUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "NeonHubV2"
+    screenGui.Parent = game.CoreGui
+    
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 400, 0, 600)
+    mainFrame.Position = UDim2.new(0, 50, 0, 50)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    -- Corner radius
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = mainFrame
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    title.Text = "💎 Neon Hub v2 - Blox Fruits"
+    title.TextColor3 = Color3.white
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+    
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 10)
+    titleCorner.Parent = title
+    
+    -- Status display
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(1, -20, 0, 80)
+    statusLabel.Position = UDim2.new(0, 10, 0, 60)
+    statusLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    statusLabel.Text = "📊 Status: Iniciando..."
+    statusLabel.TextColor3 = Color3.white
+    statusLabel.TextScaled = true
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.Parent = mainFrame
+    
+    local statusCorner = Instance.new("UICorner")
+    statusCorner.CornerRadius = UDim.new(0, 5)
+    statusCorner.Parent = statusLabel
+    
+    -- Buttons
+    local buttonY = 150
+    local buttonHeight = 40
+    local buttonSpacing = 50
+    
+    local buttons = {
+        {text = "🎯 Auto Farm", setting = "AutoFarm"},
+        {text = "📋 Auto Quest", setting = "AutoQuest"},
+        {text = "👑 Auto Boss", setting = "AutoBoss"},
+        {text = "⚡ Auto Skills", setting = "AutoSkills"},
+        {text = "📈 Auto Stats", setting = "AutoStats"},
+        {text = "🛡️ Auto Haki", setting = "AutoHaki"},
+        {text = "💰 Auto Chest", setting = "AutoChest"},
+        {text = "🔄 Anti-AFK", setting = "AntiAFK"}
+    }
+    
+    for i, buttonData in pairs(buttons) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, -20, 0, buttonHeight)
+        button.Position = UDim2.new(0, 10, 0, buttonY + (i-1) * buttonSpacing)
+        button.BackgroundColor3 = NeonHub.Settings[buttonData.setting] and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(200, 0, 0)
+        button.Text = buttonData.text
+        button.TextColor3 = Color3.white
+        button.TextScaled = true
+        button.Font = Enum.Font.Gotham
+        button.Parent = mainFrame
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 5)
+        buttonCorner.Parent = button
+        
+        button.MouseButton1Click:Connect(function()
+            NeonHub.Settings[buttonData.setting] = not NeonHub.Settings[buttonData.setting]
+            button.BackgroundColor3 = NeonHub.Settings[buttonData.setting] and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(200, 0, 0)
+        end)
+    end
+    
+    -- Update status
+    spawn(function()
+        while true do
+            wait(1)
+            local level = getLevel()
+            local island = getCurrentIsland()
+            local sea = getPlayerSea()
+            
+            statusLabel.Text = string.format(
+                "📊 Level: %d | 🌊 Sea: %d\n🏝️ Ilha: %s\n🎯 Target: %s",
+                level, sea, island, NeonHub.CurrentTarget or "Nenhum"
+            )
+        end
+    end)
+    
+    NeonHub.GUI = screenGui
+end
+
+-- ===== LOOP PRINCIPAL =====
+function mainLoop()
+    while true do
+        wait(1)
+        
+        -- Verifica se o personagem existe
+        if not character or not character.Parent then
+            character = player.Character or player.CharacterAdded:Wait()
+            humanoid = character:WaitForChild("Humanoid")
+            rootPart = character:WaitForChild("HumanoidRootPart")
+        end
+        
+        -- Anti-AFK
+        antiAFK()
+        
+        -- Auto Stats
+        autoStats()
+        
+        -- Farm principal
+        if NeonHub.Settings.AutoFarm then
+            -- Se modo boss está ativado
+            if NeonHub.Settings.AutoBoss then
+                if not farmBoss() then
+                    wait(5) -- Aguarda respawn do boss
+                end
+            else
+                -- Farm normal de level
+                local enemy = getNearestEnemy()
+                
+                if enemy then
+                    NeonHub.CurrentTarget = enemy.Name
+                    attackEnemy(enemy)
+                else
+                    -- Não há inimigos, aceita uma nova quest
+                    if NeonHub.Settings.AutoQuest then
+                        acceptQuest()
+                        wait(3)
                     end
                 end
             end
         end
-    end
-    
-    return nearestEnemy, nearestDistance
-end
-
-local function FastAttack()
-    if not NeonHub.FastAttack then return end
-    
-    pcall(function()
-        game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("weaponChange", tostring(GetCurrentWeapon()))
-        game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("hit", GetNearestEnemy(), 1, "")
-    end)
-end
-
-local function AttackEnemy(enemy)
-    if not enemy or not enemy:FindFirstChild("HumanoidRootPart") then return end
-    
-    pcall(function()
-        -- Teleport close to enemy
-        local enemyPosition = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, NeonHub.AttackDistance)
-        TeleportTo(enemyPosition)
         
-        -- Fast attack
-        FastAttack()
-        
-        -- Traditional attack
-        local args = {
-            [1] = "weaponUnequip",
-            [2] = game.Players.LocalPlayer.Character:FindFirstChild("Combat")
-        }
-        
-        if game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") then
-            local commE = game:GetService("ReplicatedStorage").Remotes:FindFirstChild("CommE")
-            if commE then
-                commE:FireServer(unpack(args))
-            end
-        end
-    end)
-end
-
-local function GetQuest()
-    if not NeonHub.AutoQuest then return end
-    
-    local questData = GetCurrentQuest()
-    if not questData then return end
-    
-    pcall(function()
-        local args = {
-            [1] = "StartQuest",
-            [2] = questData.Name,
-            [3] = 1
-        }
-        
-        if game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") then
-            local commF = game:GetService("ReplicatedStorage").Remotes:FindFirstChild("CommF_")
-            if commF then
-                commF:InvokeServer(unpack(args))
-            end
-        end
-    end)
-end
-
-local function AutoFarm()
-    if not NeonHub.AutoFarm then return end
-    
-    local questData = GetCurrentQuest()
-    if not questData then return end
-    
-    local enemy, distance = GetNearestEnemy(questData.Enemy)
-    
-    if enemy and distance < NeonHub.FarmDistance then
-        AttackEnemy(enemy)
-    elseif not enemy then
-        -- Try to find quest enemies
-        local enemy2 = GetNearestEnemy()
-        if enemy2 then
-            AttackEnemy(enemy2)
+        -- Auto Chest
+        if NeonHub.Settings.AutoChest then
+            farmChests()
         end
     end
 end
 
-local function AutoChest()
-    if not NeonHub.AutoChest then return end
-    
-    pcall(function()
-        for _, chest in pairs(Workspace:GetChildren()) do
-            if chest.Name:find("Chest") and chest:FindFirstChild("Part") then
-                local distance = (HumanoidRootPart.Position - chest.Part.Position).Magnitude
-                if distance < 50 then
-                    TeleportTo(chest.Part.CFrame)
-                    wait(1)
-                    
-                    fireproximityprompt(chest.ProximityPrompt, 0)
-                    wait(1)
-                end
-            end
-        end
-    end)
-end
+-- ===== INICIALIZAÇÃO =====
+print("🚀 Neon Hub v2 carregando...")
+print("📋 Funcionalidades:")
+print("✅ Auto Farm com detecção inteligente de level")
+print("✅ Sistema de navegação automática entre ilhas")
+print("✅ Auto Quest com seleção automática")
+print("✅ Farm de Bosses do Sea 1")
+print("✅ Auto Skills (Z, X, C, V, F)")
+print("✅ Auto Stats com prioridades")
+print("✅ Auto Haki e combate avançado")
+print("✅ Sistema Anti-AFK")
+print("✅ Farm de Chests automático")
+print("✅ Interface gráfica completa")
 
-local function AutoSaber()
-    if not NeonHub.AutoSaber then return end
-    
-    local level = GetPlayerLevel()
-    local currentSea = GetCurrentSea()
-    
-    if level >= 200 and currentSea == 1 then
-        pcall(function()
-            local args = {
-                [1] = "ProQuestProgress",
-                [2] = "SaberQuest"
-            }
-            
-            if game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") then
-                local commF = game:GetService("ReplicatedStorage").Remotes:FindFirstChild("CommF_")
-                if commF then
-                    commF:InvokeServer(unpack(args))
-                end
-            end
-        end)
-    end
-end
+-- Cria a GUI
+createGUI()
 
-local function CheckSeaProgression()
-    local level = GetPlayerLevel()
-    local currentSea = GetCurrentSea()
-    
-    pcall(function()
-        if currentSea == 1 and level >= 700 then
-            -- Go to Second Sea
-            TeleportService:Teleport(4442272183, Player)
-        elseif currentSea == 2 and level >= 1500 then
-            -- Go to Third Sea  
-            TeleportService:Teleport(7449423635, Player)
-        end
-    end)
-end
+-- Inicia o loop principal
+spawn(mainLoop)
 
--- Advanced GUI Creation
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local UICorner = Instance.new("UICorner")
-local TitleLabel = Instance.new("TextLabel")
-local StatusLabel = Instance.new("TextLabel")
-local ToggleButton = Instance.new("TextButton")
-local ToggleUICorner = Instance.new("UICorner")
-local SettingsFrame = Instance.new("Frame")
-local SettingsUICorner = Instance.new("UICorner")
-
--- GUI Setup
-ScreenGui.Name = "NeonHubAdvanced"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ResetOnSpawn = false
-
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0, 10, 0, 10)
-MainFrame.Size = UDim2.new(0, 350, 0, 250)
-MainFrame.Active = true
-MainFrame.Draggable = true
-
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = MainFrame
-
-TitleLabel.Name = "TitleLabel"
-TitleLabel.Parent = MainFrame
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Size = UDim2.new(1, 0, 0, 50)
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "🌟 Neon Hub Advanced - By XzgyX 🌟"
-TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
-TitleLabel.TextSize = 16
-TitleLabel.TextStrokeTransparency = 0
-TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-
-StatusLabel.Name = "StatusLabel"
-StatusLabel.Parent = MainFrame
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.Position = UDim2.new(0, 10, 0, 60)
-StatusLabel.Size = UDim2.new(1, -20, 0, 140)
-StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.Text = "Status: Ready to farm"
-StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-StatusLabel.TextSize = 12
-StatusLabel.TextYAlignment = Enum.TextYAlignment.Top
-StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-ToggleButton.Name = "ToggleButton"
-ToggleButton.Parent = MainFrame
-ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-ToggleButton.BorderSizePixel = 0
-ToggleButton.Position = UDim2.new(0, 10, 1, -40)
-ToggleButton.Size = UDim2.new(1, -20, 0, 30)
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.Text = "🚀 START AUTO FARM 🚀"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextSize = 14
-
-ToggleUICorner.CornerRadius = UDim.new(0, 8)
-ToggleUICorner.Parent = ToggleButton
-
--- Main execution variables
-local isRunning = false
-local lastQuestCheck = 0
-
--- Button functionality
-ToggleButton.MouseButton1Click:Connect(function()
-    isRunning = not isRunning
-    if isRunning then
-        ToggleButton.Text = "🛑 STOP AUTO FARM 🛑"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-    else
-        ToggleButton.Text = "🚀 START AUTO FARM 🚀"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-    end
-end)
-
--- Main execution loop
-spawn(function()
-    while true do
-        if isRunning then
-            pcall(function()
-                local level = GetPlayerLevel()
-                local currentSea = GetCurrentSea()
-                local questData = GetCurrentQuest()
-                local seaName = SeaData[currentSea] and SeaData[currentSea].Name or "Unknown"
-                
-                -- Update status display
-                StatusLabel.Text = string.format(
-                    "📊 Level: %d/%d\n🌊 Sea: %s (%d)\n⚔️ Quest: %s\n🎯 Target: %s\n\n🔧 Features:\n✅ Auto Farm: %s\n✅ Auto Quest: %s\n✅ Auto Chest: %s\n✅ Auto Saber: %s\n\n💨 Fast Attack: %s",
-                    level,
-                    2600,
-                    seaName,
-                    currentSea,
-                    questData and questData.Name or "None",
-                    questData and questData.Enemy or "None",
-                    NeonHub.AutoFarm and "ON" or "OFF",
-                    NeonHub.AutoQuest and "ON" or "OFF", 
-                    NeonHub.AutoChest and "ON" or "OFF",
-                    NeonHub.AutoSaber and "ON" or "OFF",
-                    NeonHub.FastAttack and "ON" or "OFF"
-                )
-                
-                -- Get quest every 10 seconds
-                if tick() - lastQuestCheck > 10 then
-                    GetQuest()
-                    lastQuestCheck = tick()
-                end
-                
-                -- Execute main features
-                AutoFarm()
-                AutoChest()
-                AutoSaber()
-                CheckSeaProgression()
-                
-            end)
-        else
-            StatusLabel.Text = "⏸️ Auto Farm is stopped\n\nClick START to begin farming\n\n🌟 Neon Hub Advanced\n📝 Created By: XzgyX\n🎮 Max Level: 2600\n🌊 All Seas Supported"
-        end
-        
-        wait(0.1) -- Fast loop for smooth farming
-    end
-end)
-
--- Character respawn handling
-Player.CharacterAdded:Connect(function(newChar)
-    Character = newChar
-    Humanoid = Character:WaitForChild("Humanoid")
-    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-end)
-
--- Initialize
-print("🌟=================================🌟")
-print("    Neon Hub Advanced Loaded!")
-print("    Created by: XzgyX")
-print("    Version: 3.0 Advanced")
-print("🌟=================================🌟")
-print("✨ Features:")
-print("   🎯 Auto Farm (All enemies)")
-print("   📜 Auto Quest (All seas)")
-print("   💎 Auto Chest")
-print("   ⚔️ Auto Saber")
-print("   🌊 Sea Progression")
-print("   💨 Fast Attack")
-print("   📊 Level 1-2600 Support")
-print("🌟=================================🌟")
+print("💎 Neon Hub v2 iniciado com sucesso!")
+print("🎮 Use a interface para configurar as opções")
