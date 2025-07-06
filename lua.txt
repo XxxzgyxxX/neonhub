@@ -1,6 +1,10 @@
+
 -- Neon Hub V1 | Complete Blox Fruits Script
 -- Created By XzgyX
 -- Professional farming system with all features
+
+-- Wait for game to load
+repeat wait() until game:IsLoaded()
 
 -- Services
 local Players = game:GetService("Players")
@@ -69,229 +73,363 @@ local Settings = {
 -- Variables for Quest System
 local Ms, NaemQuest, LevelQuest, NameMon, CFrameQuest, CFrameMon
 
--- Create UI
-local function CreateUI()
+-- Modern UI Creation
+local function CreateModernUI()
     -- Remove existing UI if present
-    if CoreGui:FindFirstChild("NeonHubUI") then
-        CoreGui:FindFirstChild("NeonHubUI"):Destroy()
+    if CoreGui:FindFirstChild("NeonHubModernUI") then
+        CoreGui:FindFirstChild("NeonHubModernUI"):Destroy()
     end
 
     -- Main ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "NeonHubUI"
+    ScreenGui.Name = "NeonHubModernUI"
     ScreenGui.Parent = CoreGui
     ScreenGui.ResetOnSpawn = false
 
-    -- Main Frame
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.Size = UDim2.new(0, 500, 0, 400)
-    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Active = true
-    MainFrame.Draggable = true
+    -- Background Blur Effect
+    local BlurEffect = Instance.new("BlurEffect")
+    BlurEffect.Size = 0
+    BlurEffect.Parent = Lighting
 
-    -- UI Corner
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 10)
-    Corner.Parent = MainFrame
+    -- Main Container
+    local MainContainer = Instance.new("Frame")
+    MainContainer.Name = "MainContainer"
+    MainContainer.Parent = ScreenGui
+    MainContainer.Size = UDim2.new(0, 600, 0, 500)
+    MainContainer.Position = UDim2.new(0.5, -300, 0.5, -250)
+    MainContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+    MainContainer.BorderSizePixel = 0
+    MainContainer.Active = true
+    MainContainer.Draggable = true
 
-    -- Title Bar
-    local TitleBar = Instance.new("Frame")
-    TitleBar.Name = "TitleBar"
-    TitleBar.Parent = MainFrame
-    TitleBar.Size = UDim2.new(1, 0, 0, 40)
-    TitleBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-    TitleBar.BorderSizePixel = 0
+    -- Glass Effect
+    local GlassEffect = Instance.new("Frame")
+    GlassEffect.Parent = MainContainer
+    GlassEffect.Size = UDim2.new(1, 0, 1, 0)
+    GlassEffect.BackgroundTransparency = 0.85
+    GlassEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    GlassEffect.BorderSizePixel = 0
 
-    local TitleCorner = Instance.new("UICorner")
-    TitleCorner.CornerRadius = UDim.new(0, 10)
-    TitleCorner.Parent = TitleBar
+    -- Main Corner
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 15)
+    MainCorner.Parent = MainContainer
 
+    local GlassCorner = Instance.new("UICorner")
+    GlassCorner.CornerRadius = UDim.new(0, 15)
+    GlassCorner.Parent = GlassEffect
+
+    -- Gradient Background
+    local Gradient = Instance.new("UIGradient")
+    Gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
+    }
+    Gradient.Rotation = 45
+    Gradient.Parent = MainContainer
+
+    -- Top Bar
+    local TopBar = Instance.new("Frame")
+    TopBar.Name = "TopBar"
+    TopBar.Parent = MainContainer
+    TopBar.Size = UDim2.new(1, 0, 0, 60)
+    TopBar.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    TopBar.BorderSizePixel = 0
+
+    local TopBarCorner = Instance.new("UICorner")
+    TopBarCorner.CornerRadius = UDim.new(0, 15)
+    TopBarCorner.Parent = TopBar
+
+    -- Top Bar Gradient
+    local TopGradient = Instance.new("UIGradient")
+    TopGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 150, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 200, 255))
+    }
+    TopGradient.Rotation = 90
+    TopGradient.Parent = TopBar
+
+    -- Title with Animation
     local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Parent = TitleBar
-    TitleLabel.Size = UDim2.new(1, -40, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+    TitleLabel.Parent = TopBar
+    TitleLabel.Size = UDim2.new(1, -120, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 20, 0, 0)
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = "Neon Hub V1 | Blox Fruits"
+    TitleLabel.Text = "🌟 NEON HUB V1 | BLOX FRUITS 🌟"
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     TitleLabel.TextScaled = true
     TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextStrokeTransparency = 0.5
+    TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+
+    -- Minimize Button
+    local MinimizeButton = Instance.new("TextButton")
+    MinimizeButton.Parent = TopBar
+    MinimizeButton.Size = UDim2.new(0, 35, 0, 35)
+    MinimizeButton.Position = UDim2.new(1, -80, 0, 12.5)
+    MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+    MinimizeButton.Text = "−"
+    MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+    MinimizeButton.TextScaled = true
+    MinimizeButton.Font = Enum.Font.GothamBold
+
+    local MinCorner = Instance.new("UICorner")
+    MinCorner.CornerRadius = UDim.new(0, 8)
+    MinCorner.Parent = MinimizeButton
 
     -- Close Button
     local CloseButton = Instance.new("TextButton")
-    CloseButton.Parent = TitleBar
-    CloseButton.Size = UDim2.new(0, 30, 0, 30)
-    CloseButton.Position = UDim2.new(1, -35, 0, 5)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    CloseButton.Text = "X"
+    CloseButton.Parent = TopBar
+    CloseButton.Size = UDim2.new(0, 35, 0, 35)
+    CloseButton.Position = UDim2.new(1, -40, 0, 12.5)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    CloseButton.Text = "✕"
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseButton.TextScaled = true
     CloseButton.Font = Enum.Font.GothamBold
 
     local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(0, 5)
+    CloseCorner.CornerRadius = UDim.new(0, 8)
     CloseCorner.Parent = CloseButton
 
-    CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
-    end)
+    -- Tab System
+    local TabContainer = Instance.new("Frame")
+    TabContainer.Name = "TabContainer"
+    TabContainer.Parent = MainContainer
+    TabContainer.Size = UDim2.new(1, -20, 0, 50)
+    TabContainer.Position = UDim2.new(0, 10, 0, 70)
+    TabContainer.BackgroundTransparency = 1
 
-    -- Content Frame
-    local ContentFrame = Instance.new("ScrollingFrame")
-    ContentFrame.Name = "ContentFrame"
-    ContentFrame.Parent = MainFrame
-    ContentFrame.Size = UDim2.new(1, -20, 1, -60)
-    ContentFrame.Position = UDim2.new(0, 10, 0, 50)
-    ContentFrame.BackgroundTransparency = 1
-    ContentFrame.BorderSizePixel = 0
-    ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 1000)
-    ContentFrame.ScrollBarThickness = 5
+    local TabLayout = Instance.new("UIListLayout")
+    TabLayout.Parent = TabContainer
+    TabLayout.FillDirection = Enum.FillDirection.Horizontal
+    TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    TabLayout.Padding = UDim.new(0, 10)
 
-    -- Create Sections
-    local yOffset = 10
+    -- Content Container
+    local ContentContainer = Instance.new("Frame")
+    ContentContainer.Name = "ContentContainer"
+    ContentContainer.Parent = MainContainer
+    ContentContainer.Size = UDim2.new(1, -20, 1, -140)
+    ContentContainer.Position = UDim2.new(0, 10, 0, 130)
+    ContentContainer.BackgroundTransparency = 1
 
-    -- Auto Farm Section
-    local function CreateSection(name)
-        local SectionFrame = Instance.new("Frame")
-        SectionFrame.Parent = ContentFrame
-        SectionFrame.Size = UDim2.new(1, -10, 0, 30)
-        SectionFrame.Position = UDim2.new(0, 0, 0, yOffset)
-        SectionFrame.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-        SectionFrame.BorderSizePixel = 0
+    -- Tab Creation Function
+    local CurrentTab = nil
+    local Tabs = {}
 
-        local SectionCorner = Instance.new("UICorner")
-        SectionCorner.CornerRadius = UDim.new(0, 5)
-        SectionCorner.Parent = SectionFrame
+    local function CreateTab(name, icon)
+        local TabButton = Instance.new("TextButton")
+        TabButton.Parent = TabContainer
+        TabButton.Size = UDim2.new(0, 120, 1, 0)
+        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        TabButton.Text = icon .. " " .. name
+        TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+        TabButton.TextScaled = true
+        TabButton.Font = Enum.Font.Gotham
 
-        local SectionLabel = Instance.new("TextLabel")
-        SectionLabel.Parent = SectionFrame
-        SectionLabel.Size = UDim2.new(1, 0, 1, 0)
-        SectionLabel.BackgroundTransparency = 1
-        SectionLabel.Text = name
-        SectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        SectionLabel.TextScaled = true
-        SectionLabel.Font = Enum.Font.GothamBold
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 8)
+        TabCorner.Parent = TabButton
 
-        yOffset = yOffset + 40
-        return SectionFrame
+        local TabContent = Instance.new("ScrollingFrame")
+        TabContent.Name = name .. "Content"
+        TabContent.Parent = ContentContainer
+        TabContent.Size = UDim2.new(1, 0, 1, 0)
+        TabContent.BackgroundTransparency = 1
+        TabContent.BorderSizePixel = 0
+        TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+        TabContent.ScrollBarThickness = 8
+        TabContent.Visible = false
+
+        local ContentLayout = Instance.new("UIListLayout")
+        ContentLayout.Parent = TabContent
+        ContentLayout.Padding = UDim.new(0, 8)
+        ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+        TabButton.MouseButton1Click:Connect(function()
+            -- Deactivate all tabs
+            for _, tab in pairs(Tabs) do
+                tab.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+                tab.Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+                tab.Content.Visible = false
+            end
+            
+            -- Activate clicked tab
+            TabButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+            TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TabContent.Visible = true
+            CurrentTab = TabContent
+        end)
+
+        Tabs[name] = {Button = TabButton, Content = TabContent}
+        
+        -- Auto-resize canvas
+        ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+        end)
+
+        return TabContent
     end
 
-    local function CreateToggle(name, callback)
+    -- Modern Toggle Function
+    local function CreateModernToggle(parent, name, description, callback)
         local ToggleFrame = Instance.new("Frame")
-        ToggleFrame.Parent = ContentFrame
-        ToggleFrame.Size = UDim2.new(1, -10, 0, 25)
-        ToggleFrame.Position = UDim2.new(0, 0, 0, yOffset)
-        ToggleFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        ToggleFrame.Parent = parent
+        ToggleFrame.Size = UDim2.new(1, -20, 0, 80)
+        ToggleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
         ToggleFrame.BorderSizePixel = 0
 
         local ToggleCorner = Instance.new("UICorner")
-        ToggleCorner.CornerRadius = UDim.new(0, 5)
+        ToggleCorner.CornerRadius = UDim.new(0, 10)
         ToggleCorner.Parent = ToggleFrame
+
+        -- Gradient Effect
+        local ToggleGradient = Instance.new("UIGradient")
+        ToggleGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 30))
+        }
+        ToggleGradient.Rotation = 45
+        ToggleGradient.Parent = ToggleFrame
+
+        -- Glow Effect
+        local Glow = Instance.new("Frame")
+        Glow.Parent = ToggleFrame
+        Glow.Size = UDim2.new(1, 4, 1, 4)
+        Glow.Position = UDim2.new(0, -2, 0, -2)
+        Glow.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        Glow.BackgroundTransparency = 0.8
+        Glow.ZIndex = ToggleFrame.ZIndex - 1
+
+        local GlowCorner = Instance.new("UICorner")
+        GlowCorner.CornerRadius = UDim.new(0, 12)
+        GlowCorner.Parent = Glow
 
         local ToggleLabel = Instance.new("TextLabel")
         ToggleLabel.Parent = ToggleFrame
-        ToggleLabel.Size = UDim2.new(1, -60, 1, 0)
-        ToggleLabel.Position = UDim2.new(0, 5, 0, 0)
+        ToggleLabel.Size = UDim2.new(1, -100, 0, 30)
+        ToggleLabel.Position = UDim2.new(0, 15, 0, 10)
         ToggleLabel.BackgroundTransparency = 1
         ToggleLabel.Text = name
         ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
         ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
         ToggleLabel.TextScaled = true
-        ToggleLabel.Font = Enum.Font.Gotham
+        ToggleLabel.Font = Enum.Font.GothamBold
 
-        local ToggleButton = Instance.new("TextButton")
-        ToggleButton.Parent = ToggleFrame
-        ToggleButton.Size = UDim2.new(0, 50, 0, 20)
-        ToggleButton.Position = UDim2.new(1, -55, 0, 2.5)
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        ToggleButton.Text = "OFF"
-        ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        ToggleButton.TextScaled = true
-        ToggleButton.Font = Enum.Font.GothamBold
+        local DescLabel = Instance.new("TextLabel")
+        DescLabel.Parent = ToggleFrame
+        DescLabel.Size = UDim2.new(1, -100, 0, 20)
+        DescLabel.Position = UDim2.new(0, 15, 0, 45)
+        DescLabel.BackgroundTransparency = 1
+        DescLabel.Text = description
+        DescLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+        DescLabel.TextXAlignment = Enum.TextXAlignment.Left
+        DescLabel.TextScaled = true
+        DescLabel.Font = Enum.Font.Gotham
+
+        -- Modern Switch
+        local SwitchFrame = Instance.new("Frame")
+        SwitchFrame.Parent = ToggleFrame
+        SwitchFrame.Size = UDim2.new(0, 60, 0, 30)
+        SwitchFrame.Position = UDim2.new(1, -75, 0, 25)
+        SwitchFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        SwitchFrame.BorderSizePixel = 0
+
+        local SwitchCorner = Instance.new("UICorner")
+        SwitchCorner.CornerRadius = UDim.new(0, 15)
+        SwitchCorner.Parent = SwitchFrame
+
+        local SwitchButton = Instance.new("Frame")
+        SwitchButton.Parent = SwitchFrame
+        SwitchButton.Size = UDim2.new(0, 26, 0, 26)
+        SwitchButton.Position = UDim2.new(0, 2, 0, 2)
+        SwitchButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        SwitchButton.BorderSizePixel = 0
 
         local ButtonCorner = Instance.new("UICorner")
-        ButtonCorner.CornerRadius = UDim.new(0, 3)
-        ButtonCorner.Parent = ToggleButton
+        ButtonCorner.CornerRadius = UDim.new(0, 13)
+        ButtonCorner.Parent = SwitchButton
+
+        local ClickDetector = Instance.new("TextButton")
+        ClickDetector.Parent = SwitchFrame
+        ClickDetector.Size = UDim2.new(1, 0, 1, 0)
+        ClickDetector.BackgroundTransparency = 1
+        ClickDetector.Text = ""
 
         local toggled = false
-        ToggleButton.MouseButton1Click:Connect(function()
+        ClickDetector.MouseButton1Click:Connect(function()
             toggled = not toggled
+            
             if toggled then
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-                ToggleButton.Text = "ON"
+                TweenService:Create(SwitchFrame, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
+                TweenService:Create(SwitchButton, TweenInfo.new(0.3), {Position = UDim2.new(0, 32, 0, 2)}):Play()
+                Glow.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
             else
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-                ToggleButton.Text = "OFF"
+                TweenService:Create(SwitchFrame, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
+                TweenService:Create(SwitchButton, TweenInfo.new(0.3), {Position = UDim2.new(0, 2, 0, 2)}):Play()
+                Glow.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
             end
+            
             callback(toggled)
         end)
 
-        yOffset = yOffset + 30
-        return ToggleButton
+        return ToggleFrame
     end
 
-    -- Create UI Elements
-    CreateSection("🏠 Auto Farm Principal")
+    -- Create Tabs
+    local FarmTab = CreateTab("Farm", "🌾")
+    local CombatTab = CreateTab("Combat", "⚔️")
+    local PlayerTab = CreateTab("Player", "👤")
+    local MiscTab = CreateTab("Misc", "⚙️")
 
-    CreateToggle("Auto Farm Level", function(value)
+    -- Activate first tab
+    if Tabs["Farm"] then
+        Tabs["Farm"].Button.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        Tabs["Farm"].Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Tabs["Farm"].Content.Visible = true
+        CurrentTab = Tabs["Farm"].Content
+    end
+
+    -- Farm Tab Content
+    CreateModernToggle(FarmTab, "Auto Farm Level", "Automaticamente farma seu level atual", function(value)
         Settings.AutoFarmLevel = value
-        if value then
-            AutoFarmLevel()
-        end
+        if value then AutoFarmLevel() end
     end)
 
-    CreateToggle("Auto Farm Bone", function(value)
+    CreateModernToggle(FarmTab, "Auto Farm Bone", "Farma bones automaticamente (3º mundo)", function(value)
         Settings.AutoFarmBone = value
-        if value then
-            AutoBone()
-        end
+        if value then AutoBone() end
     end)
 
-    CreateToggle("Auto Farm Elite", function(value)
+    CreateModernToggle(FarmTab, "Auto Farm Elite", "Caça elites automaticamente", function(value)
         Settings.AutoFarmElite = value
-        if value then
-            AutoElite()
-        end
+        if value then AutoElite() end
     end)
 
-    CreateSection("⚔️ Sistema de Combate")
-
-    CreateToggle("Fast Attack", function(value)
-        Settings.FastAttack = value
-    end)
-
-    CreateToggle("Auto Click", function(value)
-        Settings.AutoClick = value
-    end)
-
-    CreateToggle("Bring Mobs", function(value)
+    CreateModernToggle(FarmTab, "Bring Mobs", "Puxa inimigos para perto de você", function(value)
         Settings.BringMobs = value
     end)
 
-    CreateToggle("Auto Buso Haki", function(value)
+    -- Combat Tab Content
+    CreateModernToggle(CombatTab, "Fast Attack", "Aumenta velocidade de ataque", function(value)
+        Settings.FastAttack = value
+    end)
+
+    CreateModernToggle(CombatTab, "Auto Click", "Clica automaticamente", function(value)
+        Settings.AutoClick = value
+    end)
+
+    CreateModernToggle(CombatTab, "Auto Buso Haki", "Ativa Buso Haki automaticamente", function(value)
         Settings.AutoBuso = value
     end)
 
-    CreateToggle("Auto Ken Haki", function(value)
+    CreateModernToggle(CombatTab, "Auto Ken Haki", "Ativa Ken Haki automaticamente", function(value)
         Settings.AutoKen = value
     end)
 
-    CreateSection("📊 Auto Stats")
-
-    CreateToggle("Auto Stats Melee", function(value)
-        Settings.AutoStats = value
-        Settings.SelectedStats = "Melee"
-        if value then
-            AutoStats()
-        end
-    end)
-
-    CreateSection("👤 Player")
-
-    CreateToggle("No Clip", function(value)
+    -- Player Tab Content
+    CreateModernToggle(PlayerTab, "No Clip", "Atravessa paredes", function(value)
         Settings.NoClip = value
         if value then
             spawn(function()
@@ -309,14 +447,50 @@ local function CreateUI()
         end
     end)
 
-    CreateToggle("Auto Rejoin", function(value)
+    CreateModernToggle(PlayerTab, "Auto Stats Melee", "Adiciona pontos no Melee automaticamente", function(value)
+        Settings.AutoStats = value
+        Settings.SelectedStats = "Melee"
+        if value then AutoStats() end
+    end)
+
+    -- Misc Tab Content
+    CreateModernToggle(MiscTab, "Auto Rejoin", "Reconecta automaticamente se cair", function(value)
         Settings.AutoRejoin = value
     end)
 
-    -- Notification
+    CreateModernToggle(MiscTab, "Anti AFK", "Previne kick por inatividade", function(value)
+        Settings.AntiAFK = value
+    end)
+
+    -- Button Animations
+    CloseButton.MouseButton1Click:Connect(function()
+        TweenService:Create(BlurEffect, TweenInfo.new(0.5), {Size = 0}):Play()
+        TweenService:Create(MainContainer, TweenInfo.new(0.5), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+        wait(0.5)
+        ScreenGui:Destroy()
+    end)
+
+    local minimized = false
+    MinimizeButton.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        if minimized then
+            TweenService:Create(MainContainer, TweenInfo.new(0.3), {Size = UDim2.new(0, 600, 0, 60)}):Play()
+            MinimizeButton.Text = "+"
+        else
+            TweenService:Create(MainContainer, TweenInfo.new(0.3), {Size = UDim2.new(0, 600, 0, 500)}):Play()
+            MinimizeButton.Text = "−"
+        end
+    end)
+
+    -- Opening Animation
+    MainContainer.Size = UDim2.new(0, 0, 0, 0)
+    TweenService:Create(BlurEffect, TweenInfo.new(0.5), {Size = 5}):Play()
+    TweenService:Create(MainContainer, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 600, 0, 500)}):Play()
+
+    -- Success Notification
     StarterGui:SetCore("SendNotification", {
-        Title = "Neon Hub V1",
-        Text = "Script carregado com sucesso!",
+        Title = "🌟 Neon Hub V1",
+        Text = "UI Moderna carregada com sucesso!",
         Duration = 5
     })
 end
@@ -665,13 +839,16 @@ if Settings.AutoRejoin then
     end)
 end
 
--- Initialize UI
+-- Initialize Modern UI
 wait(2)
-CreateUI()
+CreateModernUI()
 
 print("========================================")
-print("Neon Hub V1 loaded successfully!")
+print("🌟 NEON HUB V1 - UI MODERNA 🌟")
 print("Created by XzgyX")
-print("Complete Blox Fruits farming system")
-print("All features functional and optimized")
+print("✅ UI Moderna com efeitos visuais")
+print("✅ Sistema de abas organizado")
+print("✅ Todas as funções compatíveis")
+print("✅ Animações e efeitos suaves")
+print("✅ Design responsivo e moderno")
 print("========================================")
