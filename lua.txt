@@ -8,13 +8,6 @@
     ╚═══════════════════════════════════════════════════════════════╝
 ]]
 
--- Verificar se está no Roblox
-if not game or not game:GetService then
-    warn("❌ Este script deve ser executado no Roblox!")
-    print("📋 Copie este código e execute em um executor do Roblox")
-    return
-end
-
 -- Anti-Detecção Avançada
 local function setupAntiDetection()
     pcall(function()
