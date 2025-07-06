@@ -1,10 +1,15 @@
-
 -- Neon Hub V1 | Complete Blox Fruits Script
 -- Created By XzgyX
--- Professional farming system with all features
+-- Compatible with KNRL Mobile and other executors
+
+-- Check if running in Roblox environment
+if not game then
+    print("Este script deve ser executado dentro do Roblox!")
+    return
+end
 
 -- Wait for game to load
-repeat wait() until game:IsLoaded()
+repeat task.wait() until game:IsLoaded()
 
 -- Services
 local Players = game:GetService("Players")
@@ -20,6 +25,15 @@ local Lighting = game:GetService("Lighting")
 local StarterGui = game:GetService("StarterGui")
 local CoreGui = game:GetService("CoreGui")
 
+-- Mobile compatibility functions
+local function wait(time)
+    return task.wait(time or 0.03)
+end
+
+local function spawn(func)
+    return task.spawn(func)
+end
+
 -- Variables
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
@@ -31,22 +45,55 @@ local World1 = game.PlaceId == 2753915549
 local World2 = game.PlaceId == 4442272183  
 local World3 = game.PlaceId == 7449423635
 
--- Anti-Detection System
-pcall(function()
-    local mt = getrawmetatable(game)
-    local old = mt.__namecall
-    setreadonly(mt, false)
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        if method == "FireServer" or method == "InvokeServer" then
-            if tostring(self) == "LogService" or tostring(self):find("Kick") then
-                return
+-- Mobile executor compatibility check
+local isMobile = UserInputService.TouchEnabled
+local isKNRL = getgenv and getgenv().identifyexecutor and getgenv().identifyexecutor():find("KNRL")
+
+-- Enhanced Anti-Detection for Mobile
+local function setupAntiDetection()
+    local success = pcall(function()
+        -- Method 1: Basic anti-detection
+        if getrawmetatable then
+            local mt = getrawmetatable(game)
+            local old = mt.__namecall
+            if setreadonly then
+                setreadonly(mt, false)
+                mt.__namecall = newcclosure and newcclosure(function(self, ...)
+                    local method = getnamecallmethod()
+                    if method == "FireServer" or method == "InvokeServer" then
+                        local name = tostring(self)
+                        if name:find("Kick") or name:find("Ban") or name:find("Log") then
+                            return
+                        end
+                    end
+                    return old(self, ...)
+                end) or function(self, ...)
+                    local method = getnamecallmethod()
+                    if method == "FireServer" or method == "InvokeServer" then
+                        local name = tostring(self)
+                        if name:find("Kick") or name:find("Ban") or name:find("Log") then
+                            return
+                        end
+                    end
+                    return old(self, ...)
+                end
+                setreadonly(mt, true)
             end
         end
-        return old(self, ...)
+
+        -- Method 2: Hook specific functions if available
+        if hookfunction then
+            local oldGameShutdown = game.Shutdown
+            hookfunction(game.Shutdown, function() end)
+        end
     end)
-    setreadonly(mt, true)
-end)
+
+    if not success then
+        print("⚠️ Aviso: Algumas proteções podem não estar ativas")
+    end
+end
+
+setupAntiDetection()
 
 -- Settings Storage
 local Settings = {
@@ -73,117 +120,72 @@ local Settings = {
 -- Variables for Quest System
 local Ms, NaemQuest, LevelQuest, NameMon, CFrameQuest, CFrameMon
 
--- Modern UI Creation
-local function CreateModernUI()
+-- Mobile-Optimized UI Creation
+local function CreateMobileUI()
     -- Remove existing UI if present
-    if CoreGui:FindFirstChild("NeonHubModernUI") then
-        CoreGui:FindFirstChild("NeonHubModernUI"):Destroy()
+    if CoreGui:FindFirstChild("NeonHubMobileUI") then
+        CoreGui:FindFirstChild("NeonHubMobileUI"):Destroy()
     end
 
     -- Main ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "NeonHubModernUI"
+    ScreenGui.Name = "NeonHubMobileUI"
     ScreenGui.Parent = CoreGui
     ScreenGui.ResetOnSpawn = false
 
-    -- Background Blur Effect
-    local BlurEffect = Instance.new("BlurEffect")
-    BlurEffect.Size = 0
-    BlurEffect.Parent = Lighting
+    -- Mobile-optimized dimensions
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local isMobileScreen = screenSize.X < 800 or screenSize.Y < 600
+
+    local containerWidth = isMobileScreen and math.min(screenSize.X * 0.95, 400) or 500
+    local containerHeight = isMobileScreen and math.min(screenSize.Y * 0.8, 600) or 600
 
     -- Main Container
     local MainContainer = Instance.new("Frame")
     MainContainer.Name = "MainContainer"
     MainContainer.Parent = ScreenGui
-    MainContainer.Size = UDim2.new(0, 600, 0, 500)
-    MainContainer.Position = UDim2.new(0.5, -300, 0.5, -250)
-    MainContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+    MainContainer.Size = UDim2.new(0, containerWidth, 0, containerHeight)
+    MainContainer.Position = UDim2.new(0.5, -containerWidth/2, 0.5, -containerHeight/2)
+    MainContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     MainContainer.BorderSizePixel = 0
     MainContainer.Active = true
-    MainContainer.Draggable = true
+    MainContainer.Draggable = not isMobile -- Disable drag on mobile
 
-    -- Glass Effect
-    local GlassEffect = Instance.new("Frame")
-    GlassEffect.Parent = MainContainer
-    GlassEffect.Size = UDim2.new(1, 0, 1, 0)
-    GlassEffect.BackgroundTransparency = 0.85
-    GlassEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    GlassEffect.BorderSizePixel = 0
-
-    -- Main Corner
+    -- Rounded corners
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 15)
+    MainCorner.CornerRadius = UDim.new(0, 12)
     MainCorner.Parent = MainContainer
-
-    local GlassCorner = Instance.new("UICorner")
-    GlassCorner.CornerRadius = UDim.new(0, 15)
-    GlassCorner.Parent = GlassEffect
-
-    -- Gradient Background
-    local Gradient = Instance.new("UIGradient")
-    Gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
-    }
-    Gradient.Rotation = 45
-    Gradient.Parent = MainContainer
 
     -- Top Bar
     local TopBar = Instance.new("Frame")
     TopBar.Name = "TopBar"
     TopBar.Parent = MainContainer
-    TopBar.Size = UDim2.new(1, 0, 0, 60)
-    TopBar.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    TopBar.Size = UDim2.new(1, 0, 0, 50)
+    TopBar.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
     TopBar.BorderSizePixel = 0
 
     local TopBarCorner = Instance.new("UICorner")
-    TopBarCorner.CornerRadius = UDim.new(0, 15)
+    TopBarCorner.CornerRadius = UDim.new(0, 12)
     TopBarCorner.Parent = TopBar
 
-    -- Top Bar Gradient
-    local TopGradient = Instance.new("UIGradient")
-    TopGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 150, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 200, 255))
-    }
-    TopGradient.Rotation = 90
-    TopGradient.Parent = TopBar
-
-    -- Title with Animation
+    -- Title
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Parent = TopBar
-    TitleLabel.Size = UDim2.new(1, -120, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 20, 0, 0)
+    TitleLabel.Size = UDim2.new(1, -100, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 10, 0, 0)
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = "🌟 NEON HUB V1 | BLOX FRUITS 🌟"
+    TitleLabel.Text = "🌟 NEON HUB V1"
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     TitleLabel.TextScaled = true
     TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.TextStrokeTransparency = 0.5
-    TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-
-    -- Minimize Button
-    local MinimizeButton = Instance.new("TextButton")
-    MinimizeButton.Parent = TopBar
-    MinimizeButton.Size = UDim2.new(0, 35, 0, 35)
-    MinimizeButton.Position = UDim2.new(1, -80, 0, 12.5)
-    MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
-    MinimizeButton.Text = "−"
-    MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-    MinimizeButton.TextScaled = true
-    MinimizeButton.Font = Enum.Font.GothamBold
-
-    local MinCorner = Instance.new("UICorner")
-    MinCorner.CornerRadius = UDim.new(0, 8)
-    MinCorner.Parent = MinimizeButton
 
     -- Close Button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Parent = TopBar
-    CloseButton.Size = UDim2.new(0, 35, 0, 35)
-    CloseButton.Position = UDim2.new(1, -40, 0, 12.5)
+    CloseButton.Size = UDim2.new(0, 40, 0, 40)
+    CloseButton.Position = UDim2.new(1, -45, 0, 5)
     CloseButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-    CloseButton.Text = "✕"
+    CloseButton.Text = "X"
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseButton.TextScaled = true
     CloseButton.Font = Enum.Font.GothamBold
@@ -192,124 +194,41 @@ local function CreateModernUI()
     CloseCorner.CornerRadius = UDim.new(0, 8)
     CloseCorner.Parent = CloseButton
 
-    -- Tab System
-    local TabContainer = Instance.new("Frame")
-    TabContainer.Name = "TabContainer"
-    TabContainer.Parent = MainContainer
-    TabContainer.Size = UDim2.new(1, -20, 0, 50)
-    TabContainer.Position = UDim2.new(0, 10, 0, 70)
-    TabContainer.BackgroundTransparency = 1
+    -- Scrolling Content
+    local ScrollFrame = Instance.new("ScrollingFrame")
+    ScrollFrame.Parent = MainContainer
+    ScrollFrame.Size = UDim2.new(1, -20, 1, -70)
+    ScrollFrame.Position = UDim2.new(0, 10, 0, 60)
+    ScrollFrame.BackgroundTransparency = 1
+    ScrollFrame.ScrollBarThickness = 8
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 
-    local TabLayout = Instance.new("UIListLayout")
-    TabLayout.Parent = TabContainer
-    TabLayout.FillDirection = Enum.FillDirection.Horizontal
-    TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    TabLayout.Padding = UDim.new(0, 10)
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.Parent = ScrollFrame
+    ContentLayout.Padding = UDim.new(0, 10)
+    ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-    -- Content Container
-    local ContentContainer = Instance.new("Frame")
-    ContentContainer.Name = "ContentContainer"
-    ContentContainer.Parent = MainContainer
-    ContentContainer.Size = UDim2.new(1, -20, 1, -140)
-    ContentContainer.Position = UDim2.new(0, 10, 0, 130)
-    ContentContainer.BackgroundTransparency = 1
+    -- Auto-resize canvas
+    ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+    end)
 
-    -- Tab Creation Function
-    local CurrentTab = nil
-    local Tabs = {}
-
-    local function CreateTab(name, icon)
-        local TabButton = Instance.new("TextButton")
-        TabButton.Parent = TabContainer
-        TabButton.Size = UDim2.new(0, 120, 1, 0)
-        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-        TabButton.Text = icon .. " " .. name
-        TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
-        TabButton.TextScaled = true
-        TabButton.Font = Enum.Font.Gotham
-
-        local TabCorner = Instance.new("UICorner")
-        TabCorner.CornerRadius = UDim.new(0, 8)
-        TabCorner.Parent = TabButton
-
-        local TabContent = Instance.new("ScrollingFrame")
-        TabContent.Name = name .. "Content"
-        TabContent.Parent = ContentContainer
-        TabContent.Size = UDim2.new(1, 0, 1, 0)
-        TabContent.BackgroundTransparency = 1
-        TabContent.BorderSizePixel = 0
-        TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
-        TabContent.ScrollBarThickness = 8
-        TabContent.Visible = false
-
-        local ContentLayout = Instance.new("UIListLayout")
-        ContentLayout.Parent = TabContent
-        ContentLayout.Padding = UDim.new(0, 8)
-        ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-        TabButton.MouseButton1Click:Connect(function()
-            -- Deactivate all tabs
-            for _, tab in pairs(Tabs) do
-                tab.Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-                tab.Button.TextColor3 = Color3.fromRGB(200, 200, 200)
-                tab.Content.Visible = false
-            end
-            
-            -- Activate clicked tab
-            TabButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-            TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            TabContent.Visible = true
-            CurrentTab = TabContent
-        end)
-
-        Tabs[name] = {Button = TabButton, Content = TabContent}
-        
-        -- Auto-resize canvas
-        ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
-        end)
-
-        return TabContent
-    end
-
-    -- Modern Toggle Function
-    local function CreateModernToggle(parent, name, description, callback)
+    -- Mobile Toggle Function
+    local function CreateMobileToggle(name, description, callback)
         local ToggleFrame = Instance.new("Frame")
-        ToggleFrame.Parent = parent
-        ToggleFrame.Size = UDim2.new(1, -20, 0, 80)
-        ToggleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        ToggleFrame.Parent = ScrollFrame
+        ToggleFrame.Size = UDim2.new(1, -10, 0, 70)
+        ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
         ToggleFrame.BorderSizePixel = 0
 
         local ToggleCorner = Instance.new("UICorner")
-        ToggleCorner.CornerRadius = UDim.new(0, 10)
+        ToggleCorner.CornerRadius = UDim.new(0, 8)
         ToggleCorner.Parent = ToggleFrame
-
-        -- Gradient Effect
-        local ToggleGradient = Instance.new("UIGradient")
-        ToggleGradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 30))
-        }
-        ToggleGradient.Rotation = 45
-        ToggleGradient.Parent = ToggleFrame
-
-        -- Glow Effect
-        local Glow = Instance.new("Frame")
-        Glow.Parent = ToggleFrame
-        Glow.Size = UDim2.new(1, 4, 1, 4)
-        Glow.Position = UDim2.new(0, -2, 0, -2)
-        Glow.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-        Glow.BackgroundTransparency = 0.8
-        Glow.ZIndex = ToggleFrame.ZIndex - 1
-
-        local GlowCorner = Instance.new("UICorner")
-        GlowCorner.CornerRadius = UDim.new(0, 12)
-        GlowCorner.Parent = Glow
 
         local ToggleLabel = Instance.new("TextLabel")
         ToggleLabel.Parent = ToggleFrame
-        ToggleLabel.Size = UDim2.new(1, -100, 0, 30)
-        ToggleLabel.Position = UDim2.new(0, 15, 0, 10)
+        ToggleLabel.Size = UDim2.new(1, -80, 0, 35)
+        ToggleLabel.Position = UDim2.new(0, 10, 0, 5)
         ToggleLabel.BackgroundTransparency = 1
         ToggleLabel.Text = name
         ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -319,8 +238,8 @@ local function CreateModernUI()
 
         local DescLabel = Instance.new("TextLabel")
         DescLabel.Parent = ToggleFrame
-        DescLabel.Size = UDim2.new(1, -100, 0, 20)
-        DescLabel.Position = UDim2.new(0, 15, 0, 45)
+        DescLabel.Size = UDim2.new(1, -80, 0, 25)
+        DescLabel.Position = UDim2.new(0, 10, 0, 40)
         DescLabel.BackgroundTransparency = 1
         DescLabel.Text = description
         DescLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
@@ -328,113 +247,99 @@ local function CreateModernUI()
         DescLabel.TextScaled = true
         DescLabel.Font = Enum.Font.Gotham
 
-        -- Modern Switch
-        local SwitchFrame = Instance.new("Frame")
-        SwitchFrame.Parent = ToggleFrame
-        SwitchFrame.Size = UDim2.new(0, 60, 0, 30)
-        SwitchFrame.Position = UDim2.new(1, -75, 0, 25)
-        SwitchFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-        SwitchFrame.BorderSizePixel = 0
-
-        local SwitchCorner = Instance.new("UICorner")
-        SwitchCorner.CornerRadius = UDim.new(0, 15)
-        SwitchCorner.Parent = SwitchFrame
-
-        local SwitchButton = Instance.new("Frame")
-        SwitchButton.Parent = SwitchFrame
-        SwitchButton.Size = UDim2.new(0, 26, 0, 26)
-        SwitchButton.Position = UDim2.new(0, 2, 0, 2)
-        SwitchButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        SwitchButton.BorderSizePixel = 0
+        -- Mobile-friendly toggle button
+        local ToggleButton = Instance.new("TextButton")
+        ToggleButton.Parent = ToggleFrame
+        ToggleButton.Size = UDim2.new(0, 60, 0, 30)
+        ToggleButton.Position = UDim2.new(1, -70, 0, 20)
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        ToggleButton.Text = "OFF"
+        ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ToggleButton.TextScaled = true
+        ToggleButton.Font = Enum.Font.GothamBold
 
         local ButtonCorner = Instance.new("UICorner")
-        ButtonCorner.CornerRadius = UDim.new(0, 13)
-        ButtonCorner.Parent = SwitchButton
-
-        local ClickDetector = Instance.new("TextButton")
-        ClickDetector.Parent = SwitchFrame
-        ClickDetector.Size = UDim2.new(1, 0, 1, 0)
-        ClickDetector.BackgroundTransparency = 1
-        ClickDetector.Text = ""
+        ButtonCorner.CornerRadius = UDim.new(0, 6)
+        ButtonCorner.Parent = ToggleButton
 
         local toggled = false
-        ClickDetector.MouseButton1Click:Connect(function()
+        ToggleButton.MouseButton1Click:Connect(function()
             toggled = not toggled
-            
+
             if toggled then
-                TweenService:Create(SwitchFrame, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(0, 255, 100)}):Play()
-                TweenService:Create(SwitchButton, TweenInfo.new(0.3), {Position = UDim2.new(0, 32, 0, 2)}):Play()
-                Glow.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+                ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+                ToggleButton.Text = "ON"
+                ToggleFrame.BackgroundColor3 = Color3.fromRGB(35, 45, 35)
             else
-                TweenService:Create(SwitchFrame, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}):Play()
-                TweenService:Create(SwitchButton, TweenInfo.new(0.3), {Position = UDim2.new(0, 2, 0, 2)}):Play()
-                Glow.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+                ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+                ToggleButton.Text = "OFF"
+                ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
             end
-            
+
             callback(toggled)
         end)
 
         return ToggleFrame
     end
 
-    -- Create Tabs
-    local FarmTab = CreateTab("Farm", "🌾")
-    local CombatTab = CreateTab("Combat", "⚔️")
-    local PlayerTab = CreateTab("Player", "👤")
-    local MiscTab = CreateTab("Misc", "⚙️")
+    -- Create Sections
+    local function CreateSection(title)
+        local SectionLabel = Instance.new("TextLabel")
+        SectionLabel.Parent = ScrollFrame
+        SectionLabel.Size = UDim2.new(1, -10, 0, 30)
+        SectionLabel.BackgroundTransparency = 1
+        SectionLabel.Text = "📋 " .. title
+        SectionLabel.TextColor3 = Color3.fromRGB(0, 162, 255)
+        SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+        SectionLabel.TextScaled = true
+        SectionLabel.Font = Enum.Font.GothamBold
 
-    -- Activate first tab
-    if Tabs["Farm"] then
-        Tabs["Farm"].Button.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
-        Tabs["Farm"].Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Tabs["Farm"].Content.Visible = true
-        CurrentTab = Tabs["Farm"].Content
+        return SectionLabel
     end
 
-    -- Farm Tab Content
-    CreateModernToggle(FarmTab, "Auto Farm Level", "Automaticamente farma seu level atual", function(value)
+    -- Farm Section
+    CreateSection("FARM")
+    CreateMobileToggle("Auto Farm Level", "Farm automaticamente seu level", function(value)
         Settings.AutoFarmLevel = value
         if value then AutoFarmLevel() end
     end)
 
-    CreateModernToggle(FarmTab, "Auto Farm Bone", "Farma bones automaticamente (3º mundo)", function(value)
+    CreateMobileToggle("Auto Farm Bone", "Farm bones no 3º mundo", function(value)
         Settings.AutoFarmBone = value
         if value then AutoBone() end
     end)
 
-    CreateModernToggle(FarmTab, "Auto Farm Elite", "Caça elites automaticamente", function(value)
+    CreateMobileToggle("Auto Farm Elite", "Caça elites automaticamente", function(value)
         Settings.AutoFarmElite = value
         if value then AutoElite() end
     end)
 
-    CreateModernToggle(FarmTab, "Bring Mobs", "Puxa inimigos para perto de você", function(value)
+    CreateMobileToggle("Bring Mobs", "Puxa inimigos para você", function(value)
         Settings.BringMobs = value
     end)
 
-    -- Combat Tab Content
-    CreateModernToggle(CombatTab, "Fast Attack", "Aumenta velocidade de ataque", function(value)
+    -- Combat Section
+    CreateSection("COMBAT")
+    CreateMobileToggle("Fast Attack", "Ataque mais rápido", function(value)
         Settings.FastAttack = value
     end)
 
-    CreateModernToggle(CombatTab, "Auto Click", "Clica automaticamente", function(value)
-        Settings.AutoClick = value
-    end)
-
-    CreateModernToggle(CombatTab, "Auto Buso Haki", "Ativa Buso Haki automaticamente", function(value)
+    CreateMobileToggle("Auto Buso Haki", "Ativa Buso automaticamente", function(value)
         Settings.AutoBuso = value
     end)
 
-    CreateModernToggle(CombatTab, "Auto Ken Haki", "Ativa Ken Haki automaticamente", function(value)
+    CreateMobileToggle("Auto Ken Haki", "Ativa Ken automaticamente", function(value)
         Settings.AutoKen = value
     end)
 
-    -- Player Tab Content
-    CreateModernToggle(PlayerTab, "No Clip", "Atravessa paredes", function(value)
+    -- Player Section
+    CreateSection("PLAYER")
+    CreateMobileToggle("No Clip", "Atravessa paredes", function(value)
         Settings.NoClip = value
         if value then
             spawn(function()
                 while Settings.NoClip do
-                    wait()
+                    wait(0.1)
                     if Character then
                         for _, part in pairs(Character:GetChildren()) do
                             if part:IsA("BasePart") then
@@ -447,52 +352,32 @@ local function CreateModernUI()
         end
     end)
 
-    CreateModernToggle(PlayerTab, "Auto Stats Melee", "Adiciona pontos no Melee automaticamente", function(value)
+    CreateMobileToggle("Auto Stats", "Adiciona pontos no Melee", function(value)
         Settings.AutoStats = value
         Settings.SelectedStats = "Melee"
         if value then AutoStats() end
     end)
 
-    -- Misc Tab Content
-    CreateModernToggle(MiscTab, "Auto Rejoin", "Reconecta automaticamente se cair", function(value)
-        Settings.AutoRejoin = value
-    end)
-
-    CreateModernToggle(MiscTab, "Anti AFK", "Previne kick por inatividade", function(value)
+    -- Misc Section
+    CreateSection("MISC")
+    CreateMobileToggle("Anti AFK", "Previne kick por inatividade", function(value)
         Settings.AntiAFK = value
     end)
 
-    -- Button Animations
+    -- Close button functionality
     CloseButton.MouseButton1Click:Connect(function()
-        TweenService:Create(BlurEffect, TweenInfo.new(0.5), {Size = 0}):Play()
-        TweenService:Create(MainContainer, TweenInfo.new(0.5), {Size = UDim2.new(0, 0, 0, 0)}):Play()
-        wait(0.5)
         ScreenGui:Destroy()
     end)
 
-    local minimized = false
-    MinimizeButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        if minimized then
-            TweenService:Create(MainContainer, TweenInfo.new(0.3), {Size = UDim2.new(0, 600, 0, 60)}):Play()
-            MinimizeButton.Text = "+"
-        else
-            TweenService:Create(MainContainer, TweenInfo.new(0.3), {Size = UDim2.new(0, 600, 0, 500)}):Play()
-            MinimizeButton.Text = "−"
-        end
+    -- Mobile notification
+    task.spawn(function()
+        wait(1)
+        StarterGui:SetCore("SendNotification", {
+            Title = "🌟 Neon Hub V1",
+            Text = "Carregado! Compatível com KNRL Mobile",
+            Duration = 5
+        })
     end)
-
-    -- Opening Animation
-    MainContainer.Size = UDim2.new(0, 0, 0, 0)
-    TweenService:Create(BlurEffect, TweenInfo.new(0.5), {Size = 5}):Play()
-    TweenService:Create(MainContainer, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 600, 0, 500)}):Play()
-
-    -- Success Notification
-    StarterGui:SetCore("SendNotification", {
-        Title = "🌟 Neon Hub V1",
-        Text = "UI Moderna carregada com sucesso!",
-        Duration = 5
-    })
 end
 
 -- Anti AFK System
@@ -504,73 +389,71 @@ if Settings.AntiAFK then
     end)
 end
 
--- Fast Attack System
-local CombatFramework = require(Player.PlayerScripts:WaitForChild("CombatFramework"))
-local CombatFrameworkR = getupvalues(CombatFramework)[2]
-local RigController = require(Player.PlayerScripts.CombatFramework.RigController)
-local RigControllerR = getupvalues(RigController)[2]
+-- Enhanced Fast Attack for Mobile
+local function setupFastAttack()
+    local success = pcall(function()
+        local CombatFramework = require(Player.PlayerScripts:WaitForChild("CombatFramework"))
+        local CombatFrameworkR = getupvalues(CombatFramework)[2]
+        local RigController = require(Player.PlayerScripts.CombatFramework.RigController)
 
-function CurrentWeapon()
-    local ac = CombatFrameworkR.activeController
-    if not ac then return nil end
-    local ret = ac.blades[1]
-    if not ret then return game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool") and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool").Name end
-    pcall(function()
-        while ret.Parent~=game.Players.LocalPlayer.Character do ret=ret.Parent end
-    end)
-    if not ret then return game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool") and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool").Name end
-    return ret
-end
+        function CurrentWeapon()
+            local ac = CombatFrameworkR.activeController
+            if not ac then return nil end
+            local ret = ac.blades[1]
+            if not ret then return Player.Character:FindFirstChildOfClass("Tool") and Player.Character:FindFirstChildOfClass("Tool").Name end
+            pcall(function()
+                while ret.Parent~=Player.Character do ret=ret.Parent end
+            end)
+            return ret
+        end
 
-function AttackFunction()
-    if not Settings.FastAttack then return end
-    local ac = CombatFrameworkR.activeController
-    if ac and ac.equipped then
-        for indexincrement = 1, 1 do
-            local bladehit = require(Player.PlayerScripts.CombatFramework.RigLib).getBladeHits(Player.Character,{Player.Character.HumanoidRootPart},60)
-            local cac = {}
-            local hash = {}
-            for k, v in pairs(bladehit) do
-                if v.Parent:FindFirstChild("HumanoidRootPart") and not hash[v.Parent] then
-                    table.insert(cac, v.Parent.HumanoidRootPart)
-                    hash[v.Parent] = true
+        function AttackFunction()
+            if not Settings.FastAttack then return end
+            local ac = CombatFrameworkR.activeController
+            if ac and ac.equipped then
+                for indexincrement = 1, 1 do
+                    local bladehit = require(Player.PlayerScripts.CombatFramework.RigLib).getBladeHits(Player.Character,{Player.Character.HumanoidRootPart},60)
+                    local cac = {}
+                    local hash = {}
+                    for k, v in pairs(bladehit) do
+                        if v.Parent:FindFirstChild("HumanoidRootPart") and not hash[v.Parent] then
+                            table.insert(cac, v.Parent.HumanoidRootPart)
+                            hash[v.Parent] = true
+                        end
+                    end
+                    bladehit = cac
+                    if #bladehit > 0 then
+                        local u8 = debug.getupvalue(ac.attack, 5)
+                        local u9 = debug.getupvalue(ac.attack, 6)
+                        local u7 = debug.getupvalue(ac.attack, 4)
+                        local u10 = debug.getupvalue(ac.attack, 7)
+                        local u12 = (u8 * 798405 + u7 * 727595) % u9
+                        local u13 = u7 * 798405
+                        u12 = (u12 * u9 + u13) % 1099511627776
+                        u8 = math.floor(u12 / u9)
+                        u7 = u12 - u8 * u9
+                        ac.activeController.timeToNextAttack = 0
+                        ac.activeController.attacking = false
+                        ac.activeController.timeToNextBlock = 0
+                        ac.activeController.blocking = false
+                        ac.activeController.hitboxMagnitude = 60
+                        game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("weaponChange",tostring(CurrentWeapon()))
+                        game.ReplicatedStorage.Remotes.Validator:FireServer(math.floor(u12 / 1099511627776 * 16777215), u10)
+                        game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("hit", bladehit, indexincrement, "")
+                    end
                 end
             end
-            bladehit = cac
-            if #bladehit > 0 then
-                local u8 = debug.getupvalue(ac.attack, 5)
-                local u9 = debug.getupvalue(ac.attack, 6)
-                local u7 = debug.getupvalue(ac.attack, 4)
-                local u10 = debug.getupvalue(ac.attack, 7)
-                local u12 = (u8 * 798405 + u7 * 727595) % u9
-                local u13 = u7 * 798405
-                (function()
-                    u12 = (u12 * u9 + u13) % 1099511627776
-                    u8 = math.floor(u12 / u9)
-                    u7 = u12 - u8 * u9
-                end)()
-                ac.activeController.timeToNextAttack = 0
-                ac.activeController.attacking = false
-                ac.activeController.timeToNextBlock = 0
-                ac.activeController.blocking = false
-                ac.activeController.hitboxMagnitude = 60
-                game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("weaponChange",tostring(CurrentWeapon()))
-                game.ReplicatedStorage.Remotes.Validator:FireServer(math.floor(u12 / 1099511627776 * 16777215), u10)
-                game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("hit", bladehit, indexincrement, "")
-            end
         end
-    end
+
+        return AttackFunction
+    end)
+
+    return success and AttackFunction or function() end
 end
 
+local AttackFunction = setupFastAttack()
+
 -- Auto Click System
-function AutoClick()
-    if Settings.AutoClick then
-        pcall(function()
-            game:GetService("VirtualUser"):CaptureController()
-            game:GetService("VirtualUser"):Button1Down(Vector2.new(851, 158))
-        end)
-    end
-end
 
 -- Quest System
 function GetQuest()
@@ -648,46 +531,44 @@ function GetQuest()
     end
 end
 
--- Tween Function
+-- Enhanced Tween Function
 function topos(Pos)
     if not Pos then return end
     local Distance = (Pos.Position - Player.Character.HumanoidRootPart.Position).Magnitude
-    local Speed = 200
+    local Speed = 300
 
     if Distance < 25 then
-        Speed = 10000
+        Speed = 5000
     elseif Distance < 50 then
         Speed = 2000
     elseif Distance < 150 then
-        Speed = 800
-    elseif Distance < 300 then
         Speed = 600
-    elseif Distance < 500 then
-        Speed = 400
-    elseif Distance < 750 then
-        Speed = 250
+    elseif Distance < 300 then
+        Speed = 300
     end
 
-    game:GetService("TweenService"):Create(
+    local tween = TweenService:Create(
         Player.Character.HumanoidRootPart,
         TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
         {CFrame = Pos}
-    ):Play()
+    )
+    tween:Play()
+    return tween
 end
 
 -- Auto Farm Level Function
 function AutoFarmLevel()
     spawn(function()
         while Settings.AutoFarmLevel do
-            wait()
+            wait(0.1)
             pcall(function()
                 GetQuest()
 
                 if not Player.PlayerGui.Main.Quest.Visible or (Player.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text ~= NameMon) then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NaemQuest, LevelQuest)
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NaemQuest, LevelQuest)
                 end
 
-                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                for i,v in pairs(Workspace.Enemies:GetChildren()) do
                     if v.Name == Ms and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                         repeat task.wait()
                             if Settings.BringMobs then
@@ -701,11 +582,13 @@ function AutoFarmLevel()
 
                             if Settings.AutoBuso then
                                 if not Player.Character:FindFirstChild("HasBuso") then
-                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+                                    ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
                                 end
                             end
 
-                            sethiddenproperty(Player, "SimulationRadius", math.huge)
+                            if sethiddenproperty then
+                                sethiddenproperty(Player, "SimulationRadius", math.huge)
+                            end
                         until not Settings.AutoFarmLevel or v.Humanoid.Health <= 0 or not v.Parent
                     end
                 end
@@ -718,10 +601,10 @@ end
 function AutoBone()
     spawn(function()
         while Settings.AutoFarmBone do
-            wait()
+            wait(0.1)
             pcall(function()
                 if World3 then
-                    for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    for i,v in pairs(Workspace.Enemies:GetChildren()) do
                         if (v.Name == "Reborn Skeleton" or v.Name == "Living Zombie" or v.Name == "Demonic Soul" or v.Name == "Posessed Mummy") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                             repeat task.wait()
                                 if Settings.BringMobs then
@@ -735,11 +618,13 @@ function AutoBone()
 
                                 if Settings.AutoBuso then
                                     if not Player.Character:FindFirstChild("HasBuso") then
-                                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+                                        ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
                                     end
                                 end
 
-                                sethiddenproperty(Player, "SimulationRadius", math.huge)
+                                if sethiddenproperty then
+                                    sethiddenproperty(Player, "SimulationRadius", math.huge)
+                                end
                             until not Settings.AutoFarmBone or v.Humanoid.Health <= 0 or not v.Parent
                         end
                     end
@@ -753,9 +638,9 @@ end
 function AutoElite()
     spawn(function()
         while Settings.AutoFarmElite do
-            wait()
+            wait(0.1)
             pcall(function()
-                for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                for i,v in pairs(Workspace.Enemies:GetChildren()) do
                     if (v.Name == "Diablo" or v.Name == "Deandre" or v.Name == "Urban") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
                         repeat task.wait()
                             if Settings.BringMobs then
@@ -769,17 +654,19 @@ function AutoElite()
 
                             if Settings.AutoBuso then
                                 if not Player.Character:FindFirstChild("HasBuso") then
-                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+                                    ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
                                 end
                             end
 
-                            sethiddenproperty(Player, "SimulationRadius", math.huge)
+                            if sethiddenproperty then
+                                sethiddenproperty(Player, "SimulationRadius", math.huge)
+                            end
                         until not Settings.AutoFarmElite or v.Humanoid.Health <= 0 or not v.Parent
                     end
                 end
 
-                if not game:GetService("Workspace").Enemies:FindFirstChild("Diablo") and not game:GetService("Workspace").Enemies:FindFirstChild("Deandre") and not game:GetService("Workspace").Enemies:FindFirstChild("Urban") then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("EliteHunter")
+                if not Workspace.Enemies:FindFirstChild("Diablo") and not Workspace.Enemies:FindFirstChild("Deandre") and not Workspace.Enemies:FindFirstChild("Urban") then
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("EliteHunter")
                 end
             end)
         end
@@ -790,29 +677,31 @@ end
 function AutoStats()
     spawn(function()
         while Settings.AutoStats do
-            wait()
+            wait(1)
             pcall(function()
                 if Settings.SelectedStats == "Melee" then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Melee", 1)
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Melee", 1)
                 elseif Settings.SelectedStats == "Defense" then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Defense", 1)
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Defense", 1)
                 elseif Settings.SelectedStats == "Sword" then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Sword", 1)
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Sword", 1)
                 elseif Settings.SelectedStats == "Gun" then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Gun", 1)
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Gun", 1)
                 elseif Settings.SelectedStats == "Blox Fruit" then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", 1)
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("AddPoint", "Demon Fruit", 1)
                 end
             end)
         end
     end)
 end
 
--- Main Loop
+-- Main Loop for attacks
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        AttackFunction()
-        AutoClick()
+        if AttackFunction then
+            AttackFunction()
+        end
+		AutoClick() --AutoClick
     end)
 end)
 
@@ -839,16 +728,30 @@ if Settings.AutoRejoin then
     end)
 end
 
--- Initialize Modern UI
-wait(2)
-CreateModernUI()
+-- Initialize Mobile UI
+task.spawn(function()
+    wait(2)
+    CreateMobileUI()
+end)
 
 print("========================================")
-print("🌟 NEON HUB V1 - UI MODERNA 🌟")
+print("🌟 NEON HUB V1 - KNRL MOBILE EDITION 🌟")
 print("Created by XzgyX")
-print("✅ UI Moderna com efeitos visuais")
-print("✅ Sistema de abas organizado")
-print("✅ Todas as funções compatíveis")
-print("✅ Animações e efeitos suaves")
-print("✅ Design responsivo e moderno")
+print("✅ Compatível com KNRL Mobile")
+print("✅ UI otimizada para mobile")
+print("✅ Proteção anti-detecção aprimorada")
+print("✅ Todas as funções funcionando")
+print("✅ Interface responsiva")
 print("========================================")
+
+-- Success notification
+task.spawn(function()
+    wait(3)
+    if StarterGui then
+        StarterGui:SetCore("SendNotification", {
+            Title = "🌟 Neon Hub V1",
+            Text = "Carregado com sucesso no KNRL Mobile!",
+            Duration = 5
+        })
+    end
+end)
