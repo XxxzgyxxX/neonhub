@@ -1,9 +1,29 @@
---[=[ 
-  🚀 Script Grow a Garden - Versão Melhorada com Configuração por Jogador
-]=]
+--[[
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                                                      ║
+║  ███╗   ██╗███████╗ ██████╗ ███╗   ██╗    ██╗  ██╗██╗   ██╗██████╗                                                 ║
+║  ████╗  ██║██╔════╝██╔═══██╗████╗  ██║    ██║  ██║██║   ██║██╔══██╗                                                ║
+║  ██╔██╗ ██║█████╗  ██║   ██║██╔██╗ ██║    ███████║██║   ██║██████╔╝                                                ║
+║  ██║╚██╗██║██╔══╝  ██║   ██║██║╚██╗██║    ██╔══██║██║   ██║██╔══██╗                                                ║
+║  ██║ ╚████║███████╗╚██████╔╝██║ ╚████║    ██║  ██║╚██████╔╝██████╔╝                                                ║
+║  ╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝                                                 ║
+║                                                                                                                      ║
+║  ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
+║  │                                      🌟 GROW A GARDEN SCRIPT 🌟                                               │  ║
+║  │                                            By XzgyX                                                           │  ║
+║  │                                    Professional Edition v2.0                                                 │  ║
+║  │                                                                                                              │  ║
+║  │  ✅ Auto Farm Complete System     ✅ Teleport System        ✅ Player Modifications                          │  ║
+║  │  ✅ Auto Plant & Harvest         ✅ ESP & Visual Effects    ✅ FPS Boost & Optimization                      │  ║
+║  │  ✅ Auto Water & Sell            ✅ Anti-AFK System         ✅ Server Management                             │  ║
+║  │  ✅ Auto Buy Seeds & Tools       ✅ Statistics Monitor      ✅ Professional UI                              │  ║
+║  │  ✅ Auto Egg System              ✅ Customizable Settings   ✅ Error Handling                               │  ║
+║  └──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+]]
 
 -- ========================================
--- SERVIÇOS E INICIALIZAÇÃO
+-- SERVIÇOS E CONFIGURAÇÕES INICIAIS
 -- ========================================
 
 local Players = game:GetService("Players")
@@ -18,118 +38,155 @@ local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local DataStoreService = game:GetService("DataStoreService")
 
-local ConfigDataStore = DataStoreService:GetDataStore("GrowAGardenConfig")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- ========================================
+-- CONFIGURAÇÕES GLOBAIS
+-- ========================================
+
+local NeonHub = {
+    Author = "XzgyX",
+    Version = "2.0",
+    GameName = "Grow a Garden",
+    -- Configurações iniciais padrão
+    Settings = {
+        AutoFarm = {
+            Enabled = false,
+            PlantType = "Carrot",
+            AutoPlant = false,
+            AutoWater = false,
+            AutoHarvest = false,
+            AutoSell = false,
+            AutoCollectDrops = false,
+            PlantDelay = 0.5,
+            WaterDelay = 0.5,
+            HarvestDelay = 0.5,
+            SellDelay = 0.5
+        },
+        AutoBuy = {
+            AutoBuySeeds = false,
+            AutoBuyTools = false,
+            AutoUpgradeTools = false,
+            BuyDelay = 1
+        },
+        AutoEgg = {
+            Enabled = false,
+            EggType = "Common",
+            EggAmount = 1,
+            EggDelay = 1
+        },
+        Player = {
+            WalkSpeed = 16,
+            JumpPower = 50,
+            InfiniteJump = false,
+            NoClip = false,
+            Fly = false,
+            FlySpeed = 50
+        },
+        Visual = {
+            ESP = false,
+            FullBright = false,
+            UIScale = 1.0,
+            UITransparency = 0.1
+        },
+        Performance = {
+            FPSBoost = false,
+            LowGraphics = false,
+            AntiAFK = false
+        },
+        Server = {
+            AutoRejoin = false,
+            ServerHop = false,
+            FindEmptyServer = false
+        },
+        Teleport = {
+            TeleportSpeed = 1,
+            SmartTeleport = false
+        }
+    }
+}
+
+-- ========================================
+-- CACHE E OTIMIZAÇÕES
+-- ========================================
+
+local Cache = {
+    RemoteEvents = {},
+    RemoteFunctions = {},
+    Plants = {},
+    Tools = {},
+    Eggs = {},
+    Shops = {},
+    LastUpdate = 0,
+    UpdateInterval = 1
+}
+
+-- ========================================
+-- FUNÇÕES UTILITÁRIAS
+-- ========================================
 
 local function SendNotification(title, text, duration)
     duration = duration or 5
     StarterGui:SetCore("SendNotification", {
-        Title = "🌟 " .. title,
-        Text = text,
-        Duration = duration,
-        Icon = "rbxassetid://6023426923"
+        Title = "🌟 " .. title;
+        Text = text;
+        Duration = duration;
+        Icon = "rbxassetid://6023426923";
     })
 end
 
 local function SafeCall(func, ...)
     local success, result = pcall(func, ...)
-    if not success then warn("Erro: " .. tostring(result)) end
+    if not success then
+        warn("Neon Hub Error: " .. tostring(result))
+    end
     return success, result
 end
 
--- ========================================
--- CONFIGURAÇÕES PADRÃO (ESTRUTURA)
--- ========================================
-
-local DefaultConfig = {
-    AutoFarm = {
-        Enabled = false,
-        PlantType = "Carrot",
-        AutoPlant = false,
-        AutoWater = false,
-        AutoHarvest = false,
-        AutoSell = false,
-        AutoCollectDrops = false,
-        PlantDelay = 0.5,
-        WaterDelay = 0.5,
-        HarvestDelay = 0.5,
-        SellDelay = 0.5
-    },
-    AutoBuy = {
-        AutoBuySeeds = false,
-        AutoBuyTools = false,
-        AutoUpgradeTools = false,
-        BuyDelay = 1
-    },
-    AutoEgg = {
-        Enabled = false,
-        EggType = "Common",
-        EggAmount = 1,
-        EggDelay = 1
-    },
-    Player = {
-        WalkSpeed = 16,
-        JumpPower = 50,
-        InfiniteJump = false,
-        NoClip = false,
-        Fly = false,
-        FlySpeed = 50
-    },
-    Visual = {
-        ESP = false,
-        FullBright = false,
-        UIScale = 1.0,
-        UITransparency = 0.1
-    },
-    Performance = {
-        FPSBoost = false,
-        LowGraphics = false,
-        AntiAFK = false
-    },
-    Server = {
-        AutoRejoin = false,
-        ServerHop = false,
-        FindEmptyServer = false
-    },
-    Teleport = {
-        TeleportSpeed = 1,
-        SmartTeleport = false
-    }
-}
-
--- ========================================
--- UTILITÁRIAS
--- ========================================
-
-local function SaveConfig(player, config)
-    local success, err = pcall(function()
-        ConfigDataStore:SetAsync(tostring(player.UserId), config)
-    end)
-    if not success then warn("Erro ao salvar config de " .. player.Name .. ": " .. err) end
+local function GetRemoteEvent(name)
+    if not Cache.RemoteEvents[name] then
+        local remote = ReplicatedStorage:FindFirstChild(name, true)
+        if remote and remote:IsA("RemoteEvent") then
+            Cache.RemoteEvents[name] = remote
+        end
+    end
+    return Cache.RemoteEvents[name]
 end
 
-local function LoadConfig(player)
-    local success, data = pcall(function()
-        return ConfigDataStore:GetAsync(tostring(player.UserId))
-    end)
-    if success and data then
-        return data
-    else
-        return nil
+local function GetRemoteFunction(name)
+    if not Cache.RemoteFunctions[name] then
+        local remote = ReplicatedStorage:FindFirstChild(name, true)
+        if remote and remote:IsA("RemoteFunction") then
+            Cache.RemoteFunctions[name] = remote
+        end
+    end
+    return Cache.RemoteFunctions[name]
+end
+
+local function FireRemote(remoteName, ...)
+    local remote = GetRemoteEvent(remoteName)
+    if remote then
+        SafeCall(function()
+            remote:FireServer(...)
+        end)
     end
 end
 
-local function ApplyPlayerSettings(player, config)
-    local char = player.Character or player.CharacterAdded:Wait()
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = config.Player.WalkSpeed
-        humanoid.JumpPower = config.Player.JumpPower
+local function InvokeRemote(remoteName, ...)
+    local remote = GetRemoteFunction(remoteName)
+    if remote then
+        return SafeCall(function()
+            return remote:InvokeServer(...)
+        end)
     end
-    -- Você pode aplicar outras configurações aqui, como FullBright, ESP, etc.
 end
 
 -- ========================================
--- SISTEMA DE TELEPORT
+-- SISTEMA DE TELEPORTE
 -- ========================================
 
 local TeleportLocations = {
@@ -144,13 +201,12 @@ local TeleportLocations = {
 }
 
 local function TeleportTo(position)
-    local root = workspace:FindFirstChild("HumanoidRootPart")
-    if not root then return end
+    if not RootPart then return end
     local speed = NeonHub.Settings.Teleport.TeleportSpeed
     if speed <= 0.1 then
-        root.CFrame = CFrame.new(position)
+        RootPart.CFrame = CFrame.new(position)
     else
-        local tween = TweenService:Create(root, TweenInfo.new(speed, Enum.EasingStyle.Linear), {CFrame = CFrame.new(position)})
+        local tween = TweenService:Create(RootPart, TweenInfo.new(speed, Enum.EasingStyle.Linear), {CFrame = CFrame.new(position)})
         tween:Play()
     end
 end
@@ -171,10 +227,15 @@ end
 
 local function GetPlantState(plant)
     if not plant then return "unknown" end
-    if plant:FindFirstChild("Ready") then return "ready" end
-    if plant:FindFirstChild("Growing") then return "growing" end
-    if plant:FindFirstChild("NeedsWater") then return "needswater" end
-    return "empty"
+    if plant:FindFirstChild("Ready") then
+        return "ready"
+    elseif plant:FindFirstChild("Growing") then
+        return "growing"
+    elseif plant:FindFirstChild("NeedsWater") then
+        return "needswater"
+    else
+        return "empty"
+    end
 end
 
 local function PlantSeed(position, seedType)
@@ -182,11 +243,15 @@ local function PlantSeed(position, seedType)
 end
 
 local function WaterPlant(plant)
-    FireRemote("WaterPlant", plant)
+    if plant then
+        FireRemote("WaterPlant", plant)
+    end
 end
 
 local function HarvestPlant(plant)
-    FireRemote("HarvestPlant", plant)
+    if plant then
+        FireRemote("HarvestPlant", plant)
+    end
 end
 
 local function SellItems()
@@ -197,19 +262,22 @@ local function CollectDrops()
     for _, drop in pairs(Workspace:GetChildren()) do
         if drop.Name:lower():find("drop") or drop.Name:lower():find("coin") then
             if drop:FindFirstChild("Humanoid") then
-                drop.Humanoid:MoveTo(workspace:FindFirstChildOfClass("Humanoid"):RootPart.Position)
+                drop.Humanoid:MoveTo(RootPart.Position)
             end
         end
     end
 end
 
 -- ========================================
--- SISTEMA DE AUTO COMPRA E OVOS
+-- SISTEMA DE LOJA
 -- ========================================
 
 local function GetShopItems()
-    local success, items = pcall(function() return InvokeRemote("GetShopItems") end)
-    if success then return items else return {} end
+    local success, items = InvokeRemote("GetShopItems")
+    if success then
+        return items
+    end
+    return {}
 end
 
 local function BuyItem(itemName, quantity)
@@ -232,39 +300,39 @@ local function UpgradeTools()
     FireRemote("UpgradeTools")
 end
 
+-- ========================================
+-- SISTEMA DE OVOS
+-- ========================================
+
 local function OpenEgg(eggType, amount)
     FireRemote("OpenEgg", eggType, amount)
 end
 
 -- ========================================
--- MODIFICAÇÕES DO JOGADOR
+-- SISTEMA DE MODIFICAÇÕES DO JOGADOR
 -- ========================================
 
-local function UpdatePlayerAttributes(player, config)
-    local char = player.Character or player.CharacterAdded:Wait()
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = config.Player.WalkSpeed
-        humanoid.JumpPower = config.Player.JumpPower
+local function UpdatePlayerStats()
+    if Humanoid then
+        Humanoid.WalkSpeed = NeonHub.Settings.Player.WalkSpeed
+        Humanoid.JumpPower = NeonHub.Settings.Player.JumpPower
     end
 end
 
-local function ToggleInfiniteJump(config)
-    if config.Player.InfiniteJump then
+local function ToggleInfiniteJump()
+    if NeonHub.Settings.Player.InfiniteJump then
         UserInputService.JumpRequest:Connect(function()
-            local char = Players.LocalPlayer.Character
-            local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            if Humanoid then
+                Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
             end
         end)
     end
 end
 
-local function ToggleNoClip(config)
-    if config.Player.NoClip then
+local function ToggleNoClip()
+    if NeonHub.Settings.Player.NoClip then
         RunService.Stepped:Connect(function()
-            for _, part in pairs(Players.LocalPlayer.Character:GetChildren()) do
+            for _, part in pairs(Character:GetChildren()) do
                 if part:IsA("BasePart") then
                     part.CanCollide = false
                 end
@@ -273,31 +341,28 @@ local function ToggleNoClip(config)
     end
 end
 
-local function ToggleFly(config)
-    if config.Player.Fly then
+local function ToggleFly()
+    if NeonHub.Settings.Player.Fly then
         local bodyVelocity = Instance.new("BodyVelocity")
         bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-        bodyVelocity.Parent = workspace:FindFirstChild("HumanoidRootPart") or workspace:WaitForChild("HumanoidRootPart")
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = RootPart
         local flying = true
-        UserInputService.InputBegan:Connect(function(input, gameProcessed)
-            if not gameProcessed then
+        UserInputService.InputBegan:Connect(function(input)
+            if flying then
                 if input.KeyCode == Enum.KeyCode.W then
-                    bodyVelocity.Velocity = workspace.CurrentCamera.CFrame.LookVector * config.Player.FlySpeed
+                    bodyVelocity.Velocity = bodyVelocity.Velocity + (Workspace.CurrentCamera.CFrame.LookVector * NeonHub.Settings.Player.FlySpeed)
                 elseif input.KeyCode == Enum.KeyCode.S then
-                    bodyVelocity.Velocity = -workspace.CurrentCamera.CFrame.LookVector * config.Player.FlySpeed
+                    bodyVelocity.Velocity = bodyVelocity.Velocity - (Workspace.CurrentCamera.CFrame.LookVector * NeonHub.Settings.Player.FlySpeed)
                 elseif input.KeyCode == Enum.KeyCode.A then
-                    bodyVelocity.Velocity = -workspace.CurrentCamera.CFrame.RightVector * config.Player.FlySpeed
+                    bodyVelocity.Velocity = bodyVelocity.Velocity - (Workspace.CurrentCamera.CFrame.RightVector * NeonHub.Settings.Player.FlySpeed)
                 elseif input.KeyCode == Enum.KeyCode.D then
-                    bodyVelocity.Velocity = workspace.CurrentCamera.CFrame.RightVector * config.Player.FlySpeed
+                    bodyVelocity.Velocity = bodyVelocity.Velocity + (Workspace.CurrentCamera.CFrame.RightVector * NeonHub.Settings.Player.FlySpeed)
                 end
             end
         end)
     end
 end
-
--- ========================================
--- VISUAL E ESP
--- ========================================
 
 local function CreateESP()
     if not NeonHub.Settings.Visual.ESP then return end
@@ -315,19 +380,18 @@ local function CreateESP()
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(1, 0, 1, 0)
         label.BackgroundTransparency = 1
-        label.TextColor3 = Color3.new(1,1,1)
+        label.TextColor3 = Color3.new(1, 1, 1)
         label.TextScaled = true
         label.Font = Enum.Font.SourceSansBold
         label.Text = GetPlantState(plant)
         label.Parent = frame
-
         local state = GetPlantState(plant)
         if state == "ready" then
-            frame.BackgroundColor3 = Color3.new(0,1,0)
+            frame.BackgroundColor3 = Color3.new(0, 1, 0)
         elseif state == "needswater" then
-            frame.BackgroundColor3 = Color3.new(0,0,1)
+            frame.BackgroundColor3 = Color3.new(0, 0, 1)
         else
-            frame.BackgroundColor3 = Color3.new(1,1,0)
+            frame.BackgroundColor3 = Color3.new(1, 1, 0)
         end
     end
 end
@@ -338,19 +402,15 @@ local function ToggleFullBright()
         Lighting.ClockTime = 14
         Lighting.FogEnd = 100000
         Lighting.GlobalShadows = false
-        Lighting.OutdoorAmbient = Color3.fromRGB(128,128,128)
+        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
     else
         Lighting.Brightness = 1
         Lighting.ClockTime = 12
         Lighting.FogEnd = 100
         Lighting.GlobalShadows = true
-        Lighting.OutdoorAmbient = Color3.fromRGB(70,70,70)
+        Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
     end
 end
-
--- ========================================
--- PERFORMANCE E OTIMIZAÇÃO FPS
--- ========================================
 
 local function ApplyFPSBoost()
     if not NeonHub.Settings.Performance.FPSBoost then return end
@@ -400,15 +460,11 @@ local function UpdateStats()
     Stats.Runtime = math.floor(tick() - (game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue() / 1000))
 end
 
--- ========================================
--- SERVIDOR
--- ========================================
-
 local function ServerHop()
     local servers = {}
     local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
     local body = HttpService:JSONDecode(req)
-    for _, server in pairs(body.data or {}) do
+    for _, server in pairs(body.data) do
         if server.playing ~= server.maxPlayers then
             table.insert(servers, server.id)
         end
@@ -422,7 +478,7 @@ local function FindEmptyServer()
     local servers = {}
     local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
     local body = HttpService:JSONDecode(req)
-    for _, server in pairs(body.data or {}) do
+    for _, server in pairs(body.data) do
         if server.playing < 5 then
             table.insert(servers, server.id)
         end
@@ -440,103 +496,162 @@ local function AutoRejoin()
     end)
 end
 
--- ========================================
--- LOOP PRINCIPAL AUTO FARM
--- ========================================
-
-local function AutoFarmLoop(playerConfig)
+local function AutoFarmLoop()
     spawn(function()
         while true do
             wait(0.1)
-            if not playerConfig.AutoFarm.Enabled then
-                wait(1)
-                continue
-            end
+            if not NeonHub.Settings.AutoFarm.Enabled then continue end
             local plants = FindPlants()
             for _, plant in pairs(plants) do
                 if not plant or not plant.Parent then continue end
                 local state = GetPlantState(plant)
-                -- Auto Harvest
-                if playerConfig.AutoFarm.AutoHarvest and state == "ready" then
+                if NeonHub.Settings.AutoFarm.AutoHarvest and state == "ready" then
                     HarvestPlant(plant)
-                    wait(playerConfig.AutoFarm.HarvestDelay)
+                    wait(NeonHub.Settings.AutoFarm.HarvestDelay)
                 end
-                -- Auto Water
-                if playerConfig.AutoFarm.AutoWater and state == "needswater" then
+                if NeonHub.Settings.AutoFarm.AutoWater and state == "needswater" then
                     WaterPlant(plant)
-                    wait(playerConfig.AutoFarm.WaterDelay)
+                    wait(NeonHub.Settings.AutoFarm.WaterDelay)
                 end
-                -- Auto Plant
-                if playerConfig.AutoFarm.AutoPlant and state == "empty" then
-                    PlantSeed(plant.Position, playerConfig.AutoFarm.PlantType)
-                    wait(playerConfig.AutoFarm.PlantDelay)
+                if NeonHub.Settings.AutoFarm.AutoPlant and state == "empty" then
+                    PlantSeed(plant.Position, NeonHub.Settings.AutoFarm.PlantType)
+                    wait(NeonHub.Settings.AutoFarm.PlantDelay)
                 end
             end
-            -- Auto Sell
-            if playerConfig.AutoFarm.AutoSell then
+            if NeonHub.Settings.AutoFarm.AutoSell then
                 SellItems()
-                wait(playerConfig.AutoFarm.SellDelay)
+                wait(NeonHub.Settings.AutoFarm.SellDelay)
             end
-            -- Auto Drop & Egg & AutoBuy
-            if playerConfig.AutoFarm.AutoCollectDrops then
+            if NeonHub.Settings.AutoFarm.AutoCollectDrops then
                 CollectDrops()
             end
-            if playerConfig.AutoEgg.Enabled then
-                OpenEgg(playerConfig.AutoEgg.EggType, playerConfig.AutoEgg.EggAmount)
-                wait(playerConfig.AutoEgg.EggDelay)
-            end
-            if playerConfig.AutoBuy.AutoBuySeeds then
+            if NeonHub.Settings.AutoBuy.AutoBuySeeds then
                 BuySeeds()
-                wait(playerConfig.AutoBuy.BuyDelay)
+                wait(NeonHub.Settings.AutoBuy.BuyDelay)
             end
-            if playerConfig.AutoBuy.AutoBuyTools then
+            if NeonHub.Settings.AutoBuy.AutoBuyTools then
                 BuyTools()
-                wait(playerConfig.AutoBuy.BuyDelay)
+                wait(NeonHub.Settings.AutoBuy.BuyDelay)
             end
-            if playerConfig.AutoBuy.AutoUpgradeTools then
+            if NeonHub.Settings.AutoBuy.AutoUpgradeTools then
                 UpgradeTools()
-                wait(playerConfig.AutoBuy.BuyDelay)
+                wait(NeonHub.Settings.AutoBuy.BuyDelay)
+            end
+            if NeonHub.Settings.AutoEgg.Enabled then
+                OpenEgg(NeonHub.Settings.AutoEgg.EggType, NeonHub.Settings.AutoEgg.EggAmount)
+                wait(NeonHub.Settings.AutoEgg.EggDelay)
             end
         end
     end)
 end
 
--- ========================================
--- EVENTOS E INICIALIZAÇÃO
--- ========================================
-
-Players.PlayerAdded:Connect(function(player)
-    local config = LoadConfig(player)
-    if not config then
-        config = DefaultConfig
-    end
-    -- Salva uma cópia do config na tabela do player
-    player:SetAttribute("Config", config)
-    -- Aplicar configurações ao personagem
-    ApplyPlayerSettings(player, config)
-    -- Iniciar auto farm se ativado
-    if config.AutoFarm.Enabled then
-        AutoFarmLoop(config)
-    end
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-    local config = player:GetAttribute("Config")
-    if config then
-        SaveConfig(player, config)
-    end
-end)
-
 -- ============================
--- EXECUTA LOOP PRINCIPAL SE ATIVO
+-- SALVAR E CARREGAR CONFIGS
 -- ============================
 
-local function StartAutoFarmIfEnabled(player)
-    local config = player:GetAttribute("Config")
-    if config and config.AutoFarm.Enabled then
-        AutoFarmLoop(config)
+local ConfigDataStore = DataStoreService:GetDataStore("GrowAGardenConfig")
+
+local function SavePlayerConfig(player, config)
+    local success, err = pcall(function()
+        ConfigDataStore:SetAsync(player.UserId, config)
+    end)
+    if not success then warn("Erro ao salvar config de "..player.Name..": "..err) end
+end
+
+local function LoadPlayerConfig(player)
+    local success, data = pcall(function()
+        return ConfigDataStore:GetAsync(player.UserId)
+    end)
+    if success and data then
+        return data
+    else
+        return nil
     end
 end
 
--- Você pode também criar comandos ou UI para alterar configurações em tempo real
--- e salvar atualizações na tabela "Config" do player, que será salva ao sair.
+-- ============================
+-- EVENTOS DE PLAYER
+-- ============================
+
+Players.PlayerAdded:Connect(function(player)
+    -- Carregar config
+    local loadedConfig = LoadPlayerConfig(player)
+    if loadedConfig then
+        NeonHub.Settings = loadedConfig
+        print("Config carregada para "..player.Name)
+    else
+        NeonHub.Settings = -- padrão
+            {
+                AutoFarm = {
+                    Enabled = false,
+                    PlantType = "Carrot",
+                    AutoPlant = false,
+                    AutoWater = false,
+                    AutoHarvest = false,
+                    AutoSell = false,
+                    AutoCollectDrops = false,
+                    PlantDelay = 0.5,
+                    WaterDelay = 0.5,
+                    HarvestDelay = 0.5,
+                    SellDelay = 0.5
+                },
+                AutoBuy = {
+                    AutoBuySeeds = false,
+                    AutoBuyTools = false,
+                    AutoUpgradeTools = false,
+                    BuyDelay = 1
+                },
+                AutoEgg = {
+                    Enabled = false,
+                    EggType = "Common",
+                    EggAmount = 1,
+                    EggDelay = 1
+                },
+                Player = {
+                    WalkSpeed = 16,
+                    JumpPower = 50,
+                    InfiniteJump = false,
+                    NoClip = false,
+                    Fly = false,
+                    FlySpeed = 50
+                },
+                Visual = {
+                    ESP = false,
+                    FullBright = false,
+                    UIScale = 1.0,
+                    UITransparency = 0.1
+                },
+                Performance = {
+                    FPSBoost = false,
+                    LowGraphics = false,
+                    AntiAFK = false
+                },
+                Server = {
+                    AutoRejoin = false,
+                    ServerHop = false,
+                    FindEmptyServer = false
+                },
+                Teleport = {
+                    TeleportSpeed = 1,
+                    SmartTeleport = false
+                }
+            }
+        print("Config padrão carregado para "..player.Name)
+    end
+    -- Aplicar configurações ao carregar
+    -- Aqui você pode aplicar as configurações ao humanoide, UI, etc.
+    UpdatePlayerStats()
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    -- Salvar config na saída
+    SavePlayerConfig(player, NeonHub.Settings)
+end)
+
+-- ============================
+-- LOOP PRINCIPAL SE AUTO FARM estiver ativado
+-- ============================
+
+if NeonHub.Settings.AutoFarm.Enabled then
+    AutoFarmLoop()
+end
