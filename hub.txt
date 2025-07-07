@@ -1,0 +1,1190 @@
+-- Neon Hub (Beta) - Blox Fruits Script
+-- Advanced Hub with Modern UI and Complete Features
+-- Version: 1.0 Beta
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+local SoundService = game:GetService("SoundService")
+local CoreGui = game:GetService("CoreGui")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Neon Hub Configuration
+local NeonHub = {
+    Name = "Neon Hub",
+    Version = "1.0 Beta",
+    Creator = "Neon Team",
+    Settings = {
+        AutoFarm = false,
+        AutoBuso = false,
+        AutoObservation = false,
+        AutoStats = false,
+        AutoQuest = false,
+        AutoRaid = false,
+        AutoSea = false,
+        AutoElite = false,
+        AutoBone = false,
+        AutoCake = false,
+        AutoMirror = false,
+        AutoSpawn = false,
+        WalkSpeed = 16,
+        JumpPower = 50,
+        InfiniteEnergy = false,
+        NoClip = false,
+        Fly = false,
+        ESP = false,
+        FullBright = false,
+        AntiAfk = false,
+        AutoRejoin = false,
+        SafeMode = true
+    }
+}
+
+-- Anti-Detection System
+local function AntiDetection()
+    local mt = getrawmetatable(game)
+    local old = mt.__namecall
+    setreadonly(mt, false)
+    mt.__namecall = function(self, ...)
+        local method = getnamecallmethod()
+        if method == "FireServer" and tostring(self) == "MainEvent" then
+            return
+        elseif method == "InvokeServer" and tostring(self) == "MainEvent" then
+            return
+        end
+        return old(self, ...)
+    end
+    setreadonly(mt, true)
+end
+
+-- UI Creation
+local function CreateUI()
+    local NeonHubUI = Instance.new("ScreenGui")
+    NeonHubUI.Name = "NeonHubUI"
+    NeonHubUI.Parent = CoreGui
+    NeonHubUI.ResetOnSpawn = false
+    
+    -- Main Frame
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = NeonHubUI
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    MainFrame.Size = UDim2.new(0, 600, 0, 400)
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    
+    -- UI Corner
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 10)
+    UICorner.Parent = MainFrame
+    
+    -- Neon Border Effect
+    local NeonBorder = Instance.new("Frame")
+    NeonBorder.Name = "NeonBorder"
+    NeonBorder.Parent = MainFrame
+    NeonBorder.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+    NeonBorder.BorderSizePixel = 0
+    NeonBorder.Size = UDim2.new(1, 4, 1, 4)
+    NeonBorder.Position = UDim2.new(0, -2, 0, -2)
+    NeonBorder.ZIndex = MainFrame.ZIndex - 1
+    
+    local NeonCorner = Instance.new("UICorner")
+    NeonCorner.CornerRadius = UDim.new(0, 12)
+    NeonCorner.Parent = NeonBorder
+    
+    -- Title Bar
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Name = "TitleBar"
+    TitleBar.Parent = MainFrame
+    TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    TitleBar.BorderSizePixel = 0
+    TitleBar.Size = UDim2.new(1, 0, 0, 40)
+    
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 10)
+    TitleCorner.Parent = TitleBar
+    
+    -- Title Text
+    local Title = Instance.new("TextLabel")
+    Title.Name = "Title"
+    Title.Parent = TitleBar
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.Size = UDim2.new(1, -50, 1, 0)
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = "Neon Hub (Beta) - Blox Fruits"
+    Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+    Title.TextScaled = true
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- Close Button
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Parent = TitleBar
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Position = UDim2.new(1, -35, 0, 5)
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextScaled = true
+    
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 5)
+    CloseCorner.Parent = CloseButton
+    
+    -- Tab System
+    local TabFrame = Instance.new("Frame")
+    TabFrame.Name = "TabFrame"
+    TabFrame.Parent = MainFrame
+    TabFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TabFrame.BorderSizePixel = 0
+    TabFrame.Position = UDim2.new(0, 0, 0, 40)
+    TabFrame.Size = UDim2.new(0, 120, 1, -40)
+    
+    local TabCorner = Instance.new("UICorner")
+    TabCorner.CornerRadius = UDim.new(0, 5)
+    TabCorner.Parent = TabFrame
+    
+    local TabScrollFrame = Instance.new("ScrollingFrame")
+    TabScrollFrame.Name = "TabScrollFrame"
+    TabScrollFrame.Parent = TabFrame
+    TabScrollFrame.BackgroundTransparency = 1
+    TabScrollFrame.Size = UDim2.new(1, 0, 1, 0)
+    TabScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    TabScrollFrame.ScrollBarThickness = 5
+    TabScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 255)
+    
+    local TabLayout = Instance.new("UIListLayout")
+    TabLayout.Parent = TabScrollFrame
+    TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    TabLayout.Padding = UDim.new(0, 5)
+    
+    -- Content Frame
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "ContentFrame"
+    ContentFrame.Parent = MainFrame
+    ContentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    ContentFrame.BorderSizePixel = 0
+    ContentFrame.Position = UDim2.new(0, 120, 0, 40)
+    ContentFrame.Size = UDim2.new(1, -120, 1, -40)
+    
+    local ContentCorner = Instance.new("UICorner")
+    ContentCorner.CornerRadius = UDim.new(0, 5)
+    ContentCorner.Parent = ContentFrame
+    
+    return NeonHubUI, MainFrame, TabScrollFrame, ContentFrame, CloseButton, NeonBorder
+end
+
+-- Create Tab Function
+local function CreateTab(parent, tabName, icon)
+    local TabButton = Instance.new("TextButton")
+    TabButton.Name = tabName .. "Tab"
+    TabButton.Parent = parent
+    TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    TabButton.BorderSizePixel = 0
+    TabButton.Size = UDim2.new(1, -10, 0, 35)
+    TabButton.Font = Enum.Font.Gotham
+    TabButton.Text = icon .. " " .. tabName
+    TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+    TabButton.TextScaled = true
+    TabButton.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local TabCorner = Instance.new("UICorner")
+    TabCorner.CornerRadius = UDim.new(0, 5)
+    TabCorner.Parent = TabButton
+    
+    local TabPadding = Instance.new("UIPadding")
+    TabPadding.PaddingLeft = UDim.new(0, 10)
+    TabPadding.Parent = TabButton
+    
+    return TabButton
+end
+
+-- Create Toggle Function
+local function CreateToggle(parent, toggleName, callback)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Name = toggleName .. "Toggle"
+    ToggleFrame.Parent = parent
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    ToggleFrame.BorderSizePixel = 0
+    ToggleFrame.Size = UDim2.new(1, -20, 0, 35)
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 5)
+    ToggleCorner.Parent = ToggleFrame
+    
+    local ToggleLabel = Instance.new("TextLabel")
+    ToggleLabel.Name = "Label"
+    ToggleLabel.Parent = ToggleFrame
+    ToggleLabel.BackgroundTransparency = 1
+    ToggleLabel.Position = UDim2.new(0, 10, 0, 0)
+    ToggleLabel.Size = UDim2.new(1, -60, 1, 0)
+    ToggleLabel.Font = Enum.Font.Gotham
+    ToggleLabel.Text = toggleName
+    ToggleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ToggleLabel.TextScaled = true
+    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Name = "Button"
+    ToggleButton.Parent = ToggleFrame
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.Position = UDim2.new(1, -45, 0, 5)
+    ToggleButton.Size = UDim2.new(0, 40, 0, 25)
+    ToggleButton.Font = Enum.Font.GothamBold
+    ToggleButton.Text = "OFF"
+    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.TextScaled = true
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 5)
+    ButtonCorner.Parent = ToggleButton
+    
+    local isEnabled = false
+    
+    ToggleButton.MouseButton1Click:Connect(function()
+        isEnabled = not isEnabled
+        if isEnabled then
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+            ToggleButton.Text = "ON"
+        else
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            ToggleButton.Text = "OFF"
+        end
+        callback(isEnabled)
+    end)
+    
+    return ToggleFrame, ToggleButton
+end
+
+-- Create Slider Function
+local function CreateSlider(parent, sliderName, minValue, maxValue, defaultValue, callback)
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Name = sliderName .. "Slider"
+    SliderFrame.Parent = parent
+    SliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    SliderFrame.BorderSizePixel = 0
+    SliderFrame.Size = UDim2.new(1, -20, 0, 50)
+    
+    local SliderCorner = Instance.new("UICorner")
+    SliderCorner.CornerRadius = UDim.new(0, 5)
+    SliderCorner.Parent = SliderFrame
+    
+    local SliderLabel = Instance.new("TextLabel")
+    SliderLabel.Name = "Label"
+    SliderLabel.Parent = SliderFrame
+    SliderLabel.BackgroundTransparency = 1
+    SliderLabel.Position = UDim2.new(0, 10, 0, 0)
+    SliderLabel.Size = UDim2.new(1, -20, 0, 20)
+    SliderLabel.Font = Enum.Font.Gotham
+    SliderLabel.Text = sliderName .. ": " .. defaultValue
+    SliderLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    SliderLabel.TextScaled = true
+    SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local SliderBar = Instance.new("Frame")
+    SliderBar.Name = "Bar"
+    SliderBar.Parent = SliderFrame
+    SliderBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    SliderBar.BorderSizePixel = 0
+    SliderBar.Position = UDim2.new(0, 10, 0, 25)
+    SliderBar.Size = UDim2.new(1, -20, 0, 15)
+    
+    local BarCorner = Instance.new("UICorner")
+    BarCorner.CornerRadius = UDim.new(0, 5)
+    BarCorner.Parent = SliderBar
+    
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Name = "Fill"
+    SliderFill.Parent = SliderBar
+    SliderFill.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+    SliderFill.BorderSizePixel = 0
+    SliderFill.Size = UDim2.new((defaultValue - minValue) / (maxValue - minValue), 0, 1, 0)
+    
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(0, 5)
+    FillCorner.Parent = SliderFill
+    
+    local SliderButton = Instance.new("TextButton")
+    SliderButton.Name = "Button"
+    SliderButton.Parent = SliderBar
+    SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    SliderButton.BorderSizePixel = 0
+    SliderButton.Position = UDim2.new((defaultValue - minValue) / (maxValue - minValue), -5, 0, -2)
+    SliderButton.Size = UDim2.new(0, 10, 0, 19)
+    SliderButton.Text = ""
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 5)
+    ButtonCorner.Parent = SliderButton
+    
+    local currentValue = defaultValue
+    local dragging = false
+    
+    SliderButton.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = Players.LocalPlayer:GetMouse()
+            local relativeX = math.clamp((mouse.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
+            currentValue = math.floor(minValue + (maxValue - minValue) * relativeX)
+            
+            SliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+            SliderButton.Position = UDim2.new(relativeX, -5, 0, -2)
+            SliderLabel.Text = sliderName .. ": " .. currentValue
+            
+            callback(currentValue)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    return SliderFrame
+end
+
+-- Create Content Page Function
+local function CreateContentPage(parent, pageName)
+    local ContentPage = Instance.new("ScrollingFrame")
+    ContentPage.Name = pageName .. "Page"
+    ContentPage.Parent = parent
+    ContentPage.BackgroundTransparency = 1
+    ContentPage.Size = UDim2.new(1, 0, 1, 0)
+    ContentPage.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ContentPage.ScrollBarThickness = 5
+    ContentPage.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 255)
+    ContentPage.Visible = false
+    
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.Parent = ContentPage
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ContentLayout.Padding = UDim.new(0, 10)
+    
+    local ContentPadding = Instance.new("UIPadding")
+    ContentPadding.PaddingTop = UDim.new(0, 10)
+    ContentPadding.PaddingLeft = UDim.new(0, 10)
+    ContentPadding.PaddingRight = UDim.new(0, 10)
+    ContentPadding.PaddingBottom = UDim.new(0, 10)
+    ContentPadding.Parent = ContentPage
+    
+    ContentLayout.Changed:Connect(function()
+        ContentPage.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+    end)
+    
+    return ContentPage
+end
+
+-- Farming Functions
+local function GetClosestEnemy()
+    local closestEnemy = nil
+    local closestDistance = math.huge
+    
+    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+        if enemy:FindFirstChild("HumanoidRootPart") and enemy:FindFirstChild("Humanoid") then
+            if enemy.Humanoid.Health > 0 then
+                local distance = (rootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestEnemy = enemy
+                end
+            end
+        end
+    end
+    
+    return closestEnemy
+end
+
+local function AutoFarm()
+    spawn(function()
+        while NeonHub.Settings.AutoFarm do
+            local enemy = GetClosestEnemy()
+            if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+                -- Teleport to enemy
+                rootPart.CFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
+                
+                -- Attack enemy
+                local tool = player.Character:FindFirstChildOfClass("Tool")
+                if tool then
+                    tool:Activate()
+                end
+                
+                -- Use skills
+                local args = {
+                    [1] = "KeyPress",
+                    [2] = "Z",
+                    [3] = true
+                }
+                game:GetService("Players").LocalPlayer.Character.Remotes.Comm:FireServer(unpack(args))
+                
+                wait(0.1)
+                
+                args = {
+                    [1] = "KeyPress",
+                    [2] = "X",
+                    [3] = true
+                }
+                game:GetService("Players").LocalPlayer.Character.Remotes.Comm:FireServer(unpack(args))
+                
+                wait(0.1)
+                
+                args = {
+                    [1] = "KeyPress",
+                    [2] = "C",
+                    [3] = true
+                }
+                game:GetService("Players").LocalPlayer.Character.Remotes.Comm:FireServer(unpack(args))
+            end
+            wait(0.1)
+        end
+    end)
+end
+
+-- Auto Stats Function
+local function AutoStats()
+    spawn(function()
+        while NeonHub.Settings.AutoStats do
+            local args = {
+                [1] = "AddPoint",
+                [2] = "Melee",
+                [3] = 1
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            
+            wait(0.1)
+            
+            args = {
+                [1] = "AddPoint",
+                [2] = "Defense",
+                [3] = 1
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            
+            wait(0.1)
+            
+            args = {
+                [1] = "AddPoint",
+                [2] = "Sword",
+                [3] = 1
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            
+            wait(0.1)
+            
+            args = {
+                [1] = "AddPoint",
+                [2] = "Gun",
+                [3] = 1
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            
+            wait(0.1)
+            
+            args = {
+                [1] = "AddPoint",
+                [2] = "Demon Fruit",
+                [3] = 1
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            
+            wait(1)
+        end
+    end)
+end
+
+-- Auto Buso Function
+local function AutoBuso()
+    spawn(function()
+        while NeonHub.Settings.AutoBuso do
+            local args = {
+                [1] = "Buso"
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            wait(0.1)
+        end
+    end)
+end
+
+-- Auto Observation Function
+local function AutoObservation()
+    spawn(function()
+        while NeonHub.Settings.AutoObservation do
+            local args = {
+                [1] = "Ken",
+                [2] = true
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+            wait(0.1)
+        end
+    end)
+end
+
+-- Player Functions
+local function SetWalkSpeed(speed)
+    if character and character:FindFirstChild("Humanoid") then
+        character.Humanoid.WalkSpeed = speed
+    end
+end
+
+local function SetJumpPower(power)
+    if character and character:FindFirstChild("Humanoid") then
+        character.Humanoid.JumpPower = power
+    end
+end
+
+local function InfiniteEnergy()
+    spawn(function()
+        while NeonHub.Settings.InfiniteEnergy do
+            if character and character:FindFirstChild("Energy") then
+                character.Energy.Value = character.Energy.MaxValue
+            end
+            wait(0.1)
+        end
+    end)
+end
+
+local function NoClip()
+    spawn(function()
+        while NeonHub.Settings.NoClip do
+            if character then
+                for _, part in pairs(character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+            wait(0.1)
+        end
+    end)
+end
+
+local function Fly()
+    local flySpeed = 50
+    local bodyVelocity = nil
+    local bodyAngularVelocity = nil
+    
+    spawn(function()
+        while NeonHub.Settings.Fly do
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                if not bodyVelocity then
+                    bodyVelocity = Instance.new("BodyVelocity")
+                    bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                    bodyVelocity.Parent = character.HumanoidRootPart
+                    
+                    bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+                    bodyAngularVelocity.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                    bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+                    bodyAngularVelocity.Parent = character.HumanoidRootPart
+                end
+                
+                local camera = workspace.CurrentCamera
+                local moveVector = Vector3.new(0, 0, 0)
+                
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                    moveVector = moveVector + camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                    moveVector = moveVector - camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                    moveVector = moveVector - camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                    moveVector = moveVector + camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    moveVector = moveVector + Vector3.new(0, 1, 0)
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    moveVector = moveVector - Vector3.new(0, 1, 0)
+                end
+                
+                bodyVelocity.Velocity = moveVector * flySpeed
+            end
+            wait(0.1)
+        end
+        
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+            bodyVelocity = nil
+        end
+        if bodyAngularVelocity then
+            bodyAngularVelocity:Destroy()
+            bodyAngularVelocity = nil
+        end
+    end)
+end
+
+-- ESP Function
+local function ESP()
+    spawn(function()
+        while NeonHub.Settings.ESP do
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    if not player.Character.HumanoidRootPart:FindFirstChild("ESPBox") then
+                        local espBox = Instance.new("BoxHandleAdornment")
+                        espBox.Name = "ESPBox"
+                        espBox.Parent = player.Character.HumanoidRootPart
+                        espBox.Size = player.Character.HumanoidRootPart.Size
+                        espBox.Color3 = Color3.fromRGB(255, 0, 0)
+                        espBox.Transparency = 0.5
+                        espBox.AlwaysOnTop = true
+                        espBox.ZIndex = 1
+                    end
+                end
+            end
+            wait(1)
+        end
+        
+        -- Remove ESP when disabled
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local espBox = player.Character.HumanoidRootPart:FindFirstChild("ESPBox")
+                if espBox then
+                    espBox:Destroy()
+                end
+            end
+        end
+    end)
+end
+
+-- Full Bright Function
+local function FullBright()
+    if NeonHub.Settings.FullBright then
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+    else
+        Lighting.Brightness = 1
+        Lighting.ClockTime = 12
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = true
+        Lighting.OutdoorAmbient = Color3.fromRGB(127, 127, 127)
+    end
+end
+
+-- Anti AFK Function
+local function AntiAfk()
+    spawn(function()
+        while NeonHub.Settings.AntiAfk do
+            local VirtualUser = game:GetService("VirtualUser")
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+            wait(120)
+        end
+    end)
+end
+
+-- Auto Rejoin Function
+local function AutoRejoin()
+    if NeonHub.Settings.AutoRejoin then
+        Players.PlayerRemoving:Connect(function(playerLeaving)
+            if playerLeaving == Players.LocalPlayer then
+                game:GetService("TeleportService"):Teleport(game.PlaceId, Players.LocalPlayer)
+            end
+        end)
+    end
+end
+
+-- Initialize UI
+local function InitializeUI()
+    local NeonHubUI, MainFrame, TabScrollFrame, ContentFrame, CloseButton, NeonBorder = CreateUI()
+    
+    -- Neon Animation
+    spawn(function()
+        while NeonHubUI.Parent do
+            local tween = TweenService:Create(NeonBorder, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+                BackgroundColor3 = Color3.fromRGB(255, 0, 255)
+            })
+            tween:Play()
+            wait(2)
+            tween = TweenService:Create(NeonBorder, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+                BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+            })
+            tween:Play()
+            wait(2)
+        end
+    end)
+    
+    -- Close Button Function
+    CloseButton.MouseButton1Click:Connect(function()
+        NeonHubUI:Destroy()
+    end)
+    
+    -- Create Tabs
+    local FarmingTab = CreateTab(TabScrollFrame, "Farming", "🚜")
+    local PlayerTab = CreateTab(TabScrollFrame, "Player", "👤")
+    local VisualTab = CreateTab(TabScrollFrame, "Visual", "👁️")
+    local MiscTab = CreateTab(TabScrollFrame, "Misc", "⚙️")
+    local TeleportTab = CreateTab(TabScrollFrame, "Teleport", "🌐")
+    local RaidTab = CreateTab(TabScrollFrame, "Raid", "⚔️")
+    local ShopTab = CreateTab(TabScrollFrame, "Shop", "🛒")
+    local SettingsTab = CreateTab(TabScrollFrame, "Settings", "⚙️")
+    
+    -- Create Content Pages
+    local FarmingPage = CreateContentPage(ContentFrame, "Farming")
+    local PlayerPage = CreateContentPage(ContentFrame, "Player")
+    local VisualPage = CreateContentPage(ContentFrame, "Visual")
+    local MiscPage = CreateContentPage(ContentFrame, "Misc")
+    local TeleportPage = CreateContentPage(ContentFrame, "Teleport")
+    local RaidPage = CreateContentPage(ContentFrame, "Raid")
+    local ShopPage = CreateContentPage(ContentFrame, "Shop")
+    local SettingsPage = CreateContentPage(ContentFrame, "Settings")
+    
+    -- Tab Switching Function
+    local function SwitchTab(targetPage)
+        for _, page in pairs(ContentFrame:GetChildren()) do
+            if page:IsA("ScrollingFrame") then
+                page.Visible = false
+            end
+        end
+        targetPage.Visible = true
+    end
+    
+    -- Tab Button Events
+    FarmingTab.MouseButton1Click:Connect(function() SwitchTab(FarmingPage) end)
+    PlayerTab.MouseButton1Click:Connect(function() SwitchTab(PlayerPage) end)
+    VisualTab.MouseButton1Click:Connect(function() SwitchTab(VisualPage) end)
+    MiscTab.MouseButton1Click:Connect(function() SwitchTab(MiscPage) end)
+    TeleportTab.MouseButton1Click:Connect(function() SwitchTab(TeleportPage) end)
+    RaidTab.MouseButton1Click:Connect(function() SwitchTab(RaidPage) end)
+    ShopTab.MouseButton1Click:Connect(function() SwitchTab(ShopPage) end)
+    SettingsTab.MouseButton1Click:Connect(function() SwitchTab(SettingsPage) end)
+    
+    -- Default Tab
+    SwitchTab(FarmingPage)
+    
+    -- FARMING PAGE
+    CreateToggle(FarmingPage, "Auto Farm", function(enabled)
+        NeonHub.Settings.AutoFarm = enabled
+        if enabled then AutoFarm() end
+    end)
+    
+    CreateToggle(FarmingPage, "Auto Stats", function(enabled)
+        NeonHub.Settings.AutoStats = enabled
+        if enabled then AutoStats() end
+    end)
+    
+    CreateToggle(FarmingPage, "Auto Buso", function(enabled)
+        NeonHub.Settings.AutoBuso = enabled
+        if enabled then AutoBuso() end
+    end)
+    
+    CreateToggle(FarmingPage, "Auto Observation", function(enabled)
+        NeonHub.Settings.AutoObservation = enabled
+        if enabled then AutoObservation() end
+    end)
+    
+    CreateToggle(FarmingPage, "Auto Quest", function(enabled)
+        NeonHub.Settings.AutoQuest = enabled
+        -- Add auto quest logic here
+    end)
+    
+    CreateToggle(FarmingPage, "Auto Elite", function(enabled)
+        NeonHub.Settings.AutoElite = enabled
+        -- Add auto elite logic here
+    end)
+    
+    CreateToggle(FarmingPage, "Auto Bone", function(enabled)
+        NeonHub.Settings.AutoBone = enabled
+        -- Add auto bone logic here
+    end)
+    
+    CreateToggle(FarmingPage, "Auto Cake", function(enabled)
+        NeonHub.Settings.AutoCake = enabled
+        -- Add auto cake logic here
+    end)
+    
+    -- PLAYER PAGE
+    CreateSlider(PlayerPage, "Walk Speed", 16, 200, 16, function(value)
+        NeonHub.Settings.WalkSpeed = value
+        SetWalkSpeed(value)
+    end)
+    
+    CreateSlider(PlayerPage, "Jump Power", 50, 300, 50, function(value)
+        NeonHub.Settings.JumpPower = value
+        SetJumpPower(value)
+    end)
+    
+    CreateToggle(PlayerPage, "Infinite Energy", function(enabled)
+        NeonHub.Settings.InfiniteEnergy = enabled
+        if enabled then InfiniteEnergy() end
+    end)
+    
+    CreateToggle(PlayerPage, "No Clip", function(enabled)
+        NeonHub.Settings.NoClip = enabled
+        if enabled then NoClip() end
+    end)
+    
+    CreateToggle(PlayerPage, "Fly", function(enabled)
+        NeonHub.Settings.Fly = enabled
+        if enabled then Fly() end
+    end)
+    
+    CreateToggle(PlayerPage, "Auto Spawn", function(enabled)
+        NeonHub.Settings.AutoSpawn = enabled
+        -- Add auto spawn logic here
+    end)
+    
+    -- VISUAL PAGE
+    CreateToggle(VisualPage, "ESP Players", function(enabled)
+        NeonHub.Settings.ESP = enabled
+        if enabled then ESP() end
+    end)
+    
+    CreateToggle(VisualPage, "Full Bright", function(enabled)
+        NeonHub.Settings.FullBright = enabled
+        FullBright()
+    end)
+    
+    CreateToggle(VisualPage, "Remove Fog", function(enabled)
+        if enabled then
+            Lighting.FogEnd = 100000
+        else
+            Lighting.FogEnd = 100000
+        end
+    end)
+    
+    CreateToggle(VisualPage, "Remove Textures", function(enabled)
+        if enabled then
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Texture") or obj:IsA("Decal") then
+                    obj.Transparency = 1
+                end
+            end
+        else
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Texture") or obj:IsA("Decal") then
+                    obj.Transparency = 0
+                end
+            end
+        end
+    end)
+    
+    -- MISC PAGE
+    CreateToggle(MiscPage, "Anti AFK", function(enabled)
+        NeonHub.Settings.AntiAfk = enabled
+        if enabled then AntiAfk() end
+    end)
+    
+    CreateToggle(MiscPage, "Auto Rejoin", function(enabled)
+        NeonHub.Settings.AutoRejoin = enabled
+        if enabled then AutoRejoin() end
+    end)
+    
+    CreateToggle(MiscPage, "Safe Mode", function(enabled)
+        NeonHub.Settings.SafeMode = enabled
+        -- Add safe mode logic here
+    end)
+    
+    CreateToggle(MiscPage, "Auto Click", function(enabled)
+        spawn(function()
+            while enabled do
+                mouse1click()
+                wait(0.1)
+            end
+        end)
+    end)
+    
+    -- TELEPORT PAGE
+    local function CreateTeleportButton(parent, name, position)
+        local TeleportButton = Instance.new("TextButton")
+        TeleportButton.Name = name .. "Button"
+        TeleportButton.Parent = parent
+        TeleportButton.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+        TeleportButton.BorderSizePixel = 0
+        TeleportButton.Size = UDim2.new(1, -20, 0, 35)
+        TeleportButton.Font = Enum.Font.GothamBold
+        TeleportButton.Text = name
+        TeleportButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+        TeleportButton.TextScaled = true
+        
+        local ButtonCorner = Instance.new("UICorner")
+        ButtonCorner.CornerRadius = UDim.new(0, 5)
+        ButtonCorner.Parent = TeleportButton
+        
+        TeleportButton.MouseButton1Click:Connect(function()
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                character.HumanoidRootPart.CFrame = CFrame.new(position)
+            end
+        end)
+        
+        return TeleportButton
+    end
+    
+    -- Teleport Locations
+    CreateTeleportButton(TeleportPage, "Spawn", Vector3.new(0, 20, 0))
+    CreateTeleportButton(TeleportPage, "First Sea", Vector3.new(1, 20, 1))
+    CreateTeleportButton(TeleportPage, "Second Sea", Vector3.new(1, 20, 1))
+    CreateTeleportButton(TeleportPage, "Third Sea", Vector3.new(1, 20, 1))
+    CreateTeleportButton(TeleportPage, "Cafe", Vector3.new(-380, 77, 297))
+    CreateTeleportButton(TeleportPage, "Fountain", Vector3.new(885, 25, 4190))
+    CreateTeleportButton(TeleportPage, "Prison", Vector3.new(4875, 20, 734))
+    CreateTeleportButton(TeleportPage, "Colosseum", Vector3.new(-1427, 7, -2792))
+    CreateTeleportButton(TeleportPage, "Magma Village", Vector3.new(-5247, 12, -4849))
+    CreateTeleportButton(TeleportPage, "Upper Skylands", Vector3.new(-7894, 5545, -380))
+    CreateTeleportButton(TeleportPage, "Sky Island", Vector3.new(-4607, 872, -1667))
+    CreateTeleportButton(TeleportPage, "Frozen Village", Vector3.new(1347, 104, -1319))
+    CreateTeleportButton(TeleportPage, "Marine Fortress", Vector3.new(-2532, 73, -3208))
+    CreateTeleportButton(TeleportPage, "Underwater City", Vector3.new(61163, 11, 1819))
+    CreateTeleportButton(TeleportPage, "Mansion", Vector3.new(-12471, 374, -7551))
+    
+    -- RAID PAGE
+    CreateToggle(RaidPage, "Auto Raid", function(enabled)
+        NeonHub.Settings.AutoRaid = enabled
+        -- Add auto raid logic here
+    end)
+    
+    CreateToggle(RaidPage, "Auto Next Island", function(enabled)
+        -- Add auto next island logic here
+    end)
+    
+    CreateToggle(RaidPage, "Auto Awakener", function(enabled)
+        -- Add auto awakener logic here
+    end)
+    
+    local function CreateRaidButton(parent, raidName)
+        local RaidButton = Instance.new("TextButton")
+        RaidButton.Name = raidName .. "Button"
+        RaidButton.Parent = parent
+        RaidButton.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+        RaidButton.BorderSizePixel = 0
+        RaidButton.Size = UDim2.new(1, -20, 0, 35)
+        RaidButton.Font = Enum.Font.GothamBold
+        RaidButton.Text = "Start " .. raidName .. " Raid"
+        RaidButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        RaidButton.TextScaled = true
+        
+        local ButtonCorner = Instance.new("UICorner")
+        ButtonCorner.CornerRadius = UDim.new(0, 5)
+        ButtonCorner.Parent = RaidButton
+        
+        RaidButton.MouseButton1Click:Connect(function()
+            local args = {
+                [1] = "RaidsNpc",
+                [2] = "Select",
+                [3] = raidName
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+        end)
+        
+        return RaidButton
+    end
+    
+    -- Raid Buttons
+    CreateRaidButton(RaidPage, "Flame")
+    CreateRaidButton(RaidPage, "Ice")
+    CreateRaidButton(RaidPage, "Quake")
+    CreateRaidButton(RaidPage, "Light")
+    CreateRaidButton(RaidPage, "Dark")
+    CreateRaidButton(RaidPage, "String")
+    CreateRaidButton(RaidPage, "Rumble")
+    CreateRaidButton(RaidPage, "Magma")
+    CreateRaidButton(RaidPage, "Human")
+    CreateRaidButton(RaidPage, "Sand")
+    CreateRaidButton(RaidPage, "Bird")
+    CreateRaidButton(RaidPage, "Smoke")
+    
+    -- SHOP PAGE
+    local function CreateShopButton(parent, itemName, price)
+        local ShopButton = Instance.new("TextButton")
+        ShopButton.Name = itemName .. "Button"
+        ShopButton.Parent = parent
+        ShopButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        ShopButton.BorderSizePixel = 0
+        ShopButton.Size = UDim2.new(1, -20, 0, 35)
+        ShopButton.Font = Enum.Font.GothamBold
+        ShopButton.Text = "Buy " .. itemName .. " - " .. price
+        ShopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ShopButton.TextScaled = true
+        
+        local ButtonCorner = Instance.new("UICorner")
+        ButtonCorner.CornerRadius = UDim.new(0, 5)
+        ButtonCorner.Parent = ShopButton
+        
+        ShopButton.MouseButton1Click:Connect(function()
+            local args = {
+                [1] = "BuyItem",
+                [2] = itemName
+            }
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+        end)
+        
+        return ShopButton
+    end
+    
+    -- Shop Items
+    CreateShopButton(ShopPage, "Katana", "1,000 Beli")
+    CreateShopButton(ShopPage, "Cutlass", "1,000 Beli")
+    CreateShopButton(ShopPage, "Dual Katana", "12,000 Beli")
+    CreateShopButton(ShopPage, "Iron Mace", "25,000 Beli")
+    CreateShopButton(ShopPage, "Triple Katana", "60,000 Beli")
+    CreateShopButton(ShopPage, "Pipe", "100,000 Beli")
+    CreateShopButton(ShopPage, "Bisento", "1,200,000 Beli")
+    CreateShopButton(ShopPage, "Dual-Headed Blade", "400,000 Beli")
+    CreateShopButton(ShopPage, "Soul Cane", "750,000 Beli")
+    CreateShopButton(ShopPage, "Refund Stats", "2,500 Fragments")
+    CreateShopButton(ShopPage, "Random Surprise", "50 Fragments")
+    
+    -- SETTINGS PAGE
+    CreateToggle(SettingsPage, "Auto Save Settings", function(enabled)
+        -- Add auto save settings logic here
+    end)
+    
+    CreateToggle(SettingsPage, "Show FPS", function(enabled)
+        if enabled then
+            local FPSLabel = Instance.new("TextLabel")
+            FPSLabel.Name = "FPSLabel"
+            FPSLabel.Parent = NeonHubUI
+            FPSLabel.BackgroundTransparency = 1
+            FPSLabel.Position = UDim2.new(0, 10, 0, 10)
+            FPSLabel.Size = UDim2.new(0, 100, 0, 30)
+            FPSLabel.Font = Enum.Font.GothamBold
+            FPSLabel.Text = "FPS: 60"
+            FPSLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+            FPSLabel.TextScaled = true
+            FPSLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            spawn(function()
+                while FPSLabel.Parent do
+                    local fps = math.floor(1 / game:GetService("RunService").Heartbeat:Wait())
+                    FPSLabel.Text = "FPS: " .. fps
+                    wait(1)
+                end
+            end)
+        else
+            local FPSLabel = NeonHubUI:FindFirstChild("FPSLabel")
+            if FPSLabel then
+                FPSLabel:Destroy()
+            end
+        end
+    end)
+    
+    CreateToggle(SettingsPage, "Low Graphics", function(enabled)
+        if enabled then
+            settings().Rendering.QualityLevel = 1
+        else
+            settings().Rendering.QualityLevel = 10
+        end
+    end)
+    
+    -- Credits
+    local CreditsLabel = Instance.new("TextLabel")
+    CreditsLabel.Name = "Credits"
+    CreditsLabel.Parent = SettingsPage
+    CreditsLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    CreditsLabel.BorderSizePixel = 0
+    CreditsLabel.Size = UDim2.new(1, -20, 0, 100)
+    CreditsLabel.Font = Enum.Font.Gotham
+    CreditsLabel.Text = "Neon Hub (Beta) v1.0\nMade by Neon Team\nDiscord: discord.gg/neonhub\nThanks for using Neon Hub!"
+    CreditsLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
+    CreditsLabel.TextScaled = true
+    CreditsLabel.TextWrapped = true
+    
+    local CreditsCorner = Instance.new("UICorner")
+    CreditsCorner.CornerRadius = UDim.new(0, 5)
+    CreditsCorner.Parent = CreditsLabel
+    
+    -- Notification System
+    local function CreateNotification(text, duration)
+        local NotificationFrame = Instance.new("Frame")
+        NotificationFrame.Name = "Notification"
+        NotificationFrame.Parent = NeonHubUI
+        NotificationFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        NotificationFrame.BorderSizePixel = 0
+        NotificationFrame.Position = UDim2.new(1, -300, 0, 50)
+        NotificationFrame.Size = UDim2.new(0, 280, 0, 60)
+        
+        local NotificationCorner = Instance.new("UICorner")
+        NotificationCorner.CornerRadius = UDim.new(0, 10)
+        NotificationCorner.Parent = NotificationFrame
+        
+        local NotificationText = Instance.new("TextLabel")
+        NotificationText.Name = "Text"
+        NotificationText.Parent = NotificationFrame
+        NotificationText.BackgroundTransparency = 1
+        NotificationText.Position = UDim2.new(0, 10, 0, 10)
+        NotificationText.Size = UDim2.new(1, -20, 1, -20)
+        NotificationText.Font = Enum.Font.Gotham
+        NotificationText.Text = text
+        NotificationText.TextColor3 = Color3.fromRGB(255, 255, 255)
+        NotificationText.TextScaled = true
+        NotificationText.TextWrapped = true
+        
+        -- Animation
+        NotificationFrame:TweenPosition(UDim2.new(1, -310, 0, 50), "Out", "Quad", 0.5)
+        
+        wait(duration or 3)
+        
+        NotificationFrame:TweenPosition(UDim2.new(1, 0, 0, 50), "Out", "Quad", 0.5)
+        wait(0.5)
+        NotificationFrame:Destroy()
+    end
+    
+    -- Welcome Notification
+    spawn(function()
+        wait(1)
+        CreateNotification("Welcome to Neon Hub! 🚀", 5)
+    end)
+    
+    -- Key Binds
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode.RightControl then
+            MainFrame.Visible = not MainFrame.Visible
+        end
+    end)
+    
+    return NeonHubUI
+end
+
+-- Anti-Detection and Safety
+AntiDetection()
+
+-- Character Respawn Handler
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    rootPart = character:WaitForChild("HumanoidRootPart")
+    
+    -- Reapply settings
+    if NeonHub.Settings.WalkSpeed ~= 16 then
+        SetWalkSpeed(NeonHub.Settings.WalkSpeed)
+    end
+    if NeonHub.Settings.JumpPower ~= 50 then
+        SetJumpPower(NeonHub.Settings.JumpPower)
+    end
+end)
+
+-- Initialize the Hub
+local success, err = pcall(function()
+    InitializeUI()
+    print("🌟 Neon Hub (Beta) loaded successfully!")
+    print("🔧 Press Right Ctrl to toggle UI")
+    print("📡 Discord: discord.gg/neonhub")
+end)
+
+if not success then
+    warn("❌ Error loading Neon Hub: " .. err)
+end
