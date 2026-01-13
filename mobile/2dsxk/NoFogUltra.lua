@@ -1,62 +1,77 @@
--- FULL CLEAR VISION - BLOX FRUITS (SEA 3 & MAR 6)
--- Compatível com Xeno / Solara / Wave
-
-local RunService = game:GetService("RunService")
+-- FULL BYPASS VISION (SEA 3 & MAR 6) - Otimizado para Xeno PC
 local Lighting = game:GetService("Lighting")
-local Terrain = workspace:Terrain
+local Workspace = game:GetService("Workspace")
 
--- Função principal de limpeza
-local function CleanEnvironment()
-    -- 1. Força propriedades de Iluminação (Anti-Neblina)
-    Lighting.FogEnd = 100000
-    Lighting.FogStart = 100000
+-- Função para forçar as propriedades (Bypass de proteção do jogo)
+local function ForceClear()
+    -- 1. Força Neblina no Infinito
+    Lighting.FogEnd = 9e9
+    Lighting.FogStart = 9e9
     Lighting.GlobalShadows = false
-    Lighting.ClockTime = 14 -- Sempre dia
-    Lighting.Brightness = 2
-    Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
-
-    -- 2. Desativa Atmosphere e Efeitos Visuais (Mar 6)
-    for _, v in pairs(Lighting:GetChildren()) do
-        if v:IsA("Atmosphere") then
-            v.Density = 0
-            v.Haze = 0
-        elseif v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") or v:IsA("BloomEffect") or v:IsA("SunRaysEffect") then
-            v.Enabled = false
-        elseif v:IsA("Sky") or v:IsA("Clouds") then
-            v:Destroy()
+    Lighting.ClockTime = 14
+    
+    -- 2. Limpa Atmosfera e Efeitos (Mar 6 / Indra / V3)
+    for _, obj in pairs(Lighting:GetChildren()) do
+        if obj:IsA("Atmosphere") then
+            obj.Density = 0
+            obj.Haze = 0
+            obj.Glare = 0
+            obj.Offset = 0
+        elseif obj:IsA("ColorCorrectionEffect") or obj:IsA("BlurEffect") or obj:IsA("BloomEffect") then
+            obj.Enabled = false
+        elseif obj:IsA("Sky") then
+            -- Em vez de deletar, apenas desativamos o efeito visual se possível
+            -- ou mudamos a cor para não brilhar
         end
     end
 
-    -- 3. Transparência da Água (Ver monstros no Mar 6)
-    Terrain.WaterTransparency = 1
-    Terrain.WaterReflectance = 0
-    Terrain.WaterWaveSize = 0
-    Terrain.WaterWaveSpeed = 0
+    -- 3. Visibilidade Total da Água (Mar 6)
+    if Workspace:FindFirstChildOfClass("Terrain") then
+        local t = Workspace.Terrain
+        t.WaterTransparency = 1
+        t.WaterReflectance = 0
+        t.WaterWaveSize = 0
+        t.WaterWaveSpeed = 0
+    end
 end
 
--- 4. Remove Partículas (Chuva, Raios e Névoa de água)
-local function RemoveParticles()
-    for _, v in pairs(workspace:GetDescendants()) do
-        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+-- 4. Remove Partículas Agressivamente (Chuva e Névoa de Água)
+local function NoMoreParticles()
+    for _, v in pairs(Workspace:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Smoke") then
             v.Enabled = false
         end
     end
 end
 
--- EXECUÇÃO CONSTANTE (Para o jogo não resetar os efeitos)
-RunService.RenderStepped:Connect(function()
-    CleanEnvironment()
-end)
-
--- Remove partículas a cada 5 segundos (para não pesar o PC)
+-- LOOP DE ALTA PRIORIDADE (Corre em paralelo para o jogo não reagir)
 task.spawn(function()
     while true do
-        RemoveParticles()
-        task.wait(5)
+        ForceClear()
+        task.wait(0.1) -- Roda 10 vezes por segundo (Super rápido)
     end
 end)
 
-print("---------------------------------------")
-print("!!! XENO VISION LOADED SUCCESSFULLY !!!")
-print("Sea 3 e Mar 6 agora estão 100% limpos.")
-print("---------------------------------------")
+-- Remove partículas com menos frequência para não dar lag
+task.spawn(function()
+    while true do
+        NoMoreParticles()
+        task.wait(3)
+    end
+end)
+
+-- Hook para evitar que o jogo mude a iluminação via script interno
+local mt = getrawmetatable(game)
+local old = mt.__index
+setreadonly(mt, false)
+
+mt.__index = newcclosure(function(t, k)
+    if t == Lighting and (k == "FogEnd" or k == "FogStart") then
+        return 9e9
+    end
+    return old(t, k)
+end)
+
+setreadonly(mt, true)
+
+print("--- [SISTEMA REPARADO] VISÃO TOTAL ATIVADA NO XENO ---")
