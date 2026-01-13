@@ -1,77 +1,54 @@
--- FULL BYPASS VISION (SEA 3 & MAR 6) - Otimizado para Xeno PC
+-- BLOX FRUITS NO FOG & SEA 3 BYPASS (PC XENO)
 local Lighting = game:GetService("Lighting")
-local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
 
--- Função para forçar as propriedades (Bypass de proteção do jogo)
-local function ForceClear()
-    -- 1. Força Neblina no Infinito
+-- 1. FUNÇÃO DE DESTRUIÇÃO DE ATMOSFERA
+local function DestroyFog()
+    -- Remove a névoa clássica
     Lighting.FogEnd = 9e9
     Lighting.FogStart = 9e9
-    Lighting.GlobalShadows = false
     Lighting.ClockTime = 14
     
-    -- 2. Limpa Atmosfera e Efeitos (Mar 6 / Indra / V3)
-    for _, obj in pairs(Lighting:GetChildren()) do
-        if obj:IsA("Atmosphere") then
-            obj.Density = 0
-            obj.Haze = 0
-            obj.Glare = 0
-            obj.Offset = 0
-        elseif obj:IsA("ColorCorrectionEffect") or obj:IsA("BlurEffect") or obj:IsA("BloomEffect") then
-            obj.Enabled = false
-        elseif obj:IsA("Sky") then
-            -- Em vez de deletar, apenas desativamos o efeito visual se possível
-            -- ou mudamos a cor para não brilhar
-        end
-    end
-
-    -- 3. Visibilidade Total da Água (Mar 6)
-    if Workspace:FindFirstChildOfClass("Terrain") then
-        local t = Workspace.Terrain
-        t.WaterTransparency = 1
-        t.WaterReflectance = 0
-        t.WaterWaveSize = 0
-        t.WaterWaveSpeed = 0
-    end
-end
-
--- 4. Remove Partículas Agressivamente (Chuva e Névoa de Água)
-local function NoMoreParticles()
-    for _, v in pairs(Workspace:GetDescendants()) do
-        if v:IsA("ParticleEmitter") or v:IsA("Smoke") then
-            v.Enabled = false
+    -- Remove todos os objetos que criam o efeito de névoa no Sea 3
+    for _, obj in ipairs(Lighting:GetGetChildren()) do
+        if obj:IsA("Atmosphere") or obj:IsA("ColorCorrectionEffect") or obj:IsA("BlurEffect") or obj:IsA("BloomEffect") then
+            obj:Destroy() -- Deleta o objeto para o jogo não conseguir reativar
         end
     end
 end
 
--- LOOP DE ALTA PRIORIDADE (Corre em paralelo para o jogo não reagir)
-task.spawn(function()
-    while true do
-        ForceClear()
-        task.wait(0.1) -- Roda 10 vezes por segundo (Super rápido)
+-- 2. TRAVA DE PROPRIEDADE (Se o jogo mudar, o script muda de volta instantaneamente)
+Lighting.Changed:Connect(function(prop)
+    if prop == "FogEnd" or prop == "FogStart" or prop == "Ambient" then
+        Lighting.FogEnd = 9e9
+        Lighting.FogStart = 9e9
+        Lighting.Ambient = Color3.fromRGB(255, 255, 255)
     end
 end)
 
--- Remove partículas com menos frequência para não dar lag
-task.spawn(function()
-    while true do
-        NoMoreParticles()
-        task.wait(3)
+-- 3. REMOVER NEBLINA DO TERRAIN (Mar 6)
+workspace.Terrain.WaterTransparency = 1
+workspace.Terrain.WaterWaveSize = 0
+workspace.Terrain.WaterWaveSpeed = 0
+
+-- 4. LOOP DE EXECUÇÃO AGRESSIVA (RENDER STEPPED)
+-- Isso roda antes de cada frame ser desenhado na sua tela
+RunService.RenderStepped:Connect(function()
+    DestroyFog()
+    
+    -- Se houver atmosfera no Workspace (alguns jogos escondem lá)
+    for _, v in ipairs(workspace:GetChildren()) do
+        if v:IsA("Atmosphere") then
+            v:Destroy()
+        end
     end
 end)
 
--- Hook para evitar que o jogo mude a iluminação via script interno
-local mt = getrawmetatable(game)
-local old = mt.__index
-setreadonly(mt, false)
-
-mt.__index = newcclosure(function(t, k)
-    if t == Lighting and (k == "FogEnd" or k == "FogStart") then
-        return 9e9
+-- 5. DESATIVAR PARTÍCULAS (Céu escuro, chuva, raios)
+for _, v in ipairs(workspace:GetDescendants()) do
+    if v:IsA("ParticleEmitter") then
+        v.Enabled = false
     end
-    return old(t, k)
-end)
+end
 
-setreadonly(mt, true)
-
-print("--- [SISTEMA REPARADO] VISÃO TOTAL ATIVADA NO XENO ---")
+print("!!! VISION BYPASS ATIVADO - MODO AGRESSIVO !!!")
